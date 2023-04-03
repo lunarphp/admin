@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.3.0-alpha.3
+
+> No notable changes
+
+## 0.3.0-alpha.2
+
+### Fixed
+
+- Fixed a bug where existing product associations were not passed correctly on discount editing
+- Fixed a bug with popovers closing on mouse click
+
 ## 0.3-alpha
 
 ### Changed
@@ -12,6 +23,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Laravel 10 support added.
 - Changed Auth guard to use Laravel's default driver.
 - Updated `db_date` function to return just the formmatted string.
+
+## 0.2.3
+
+### Fixed
+
+- Non tiered pricing will now use the `bcmul` when saving.
+
+## 0.2.2
+
+### Fixed
+
+- Fixed wrong `$customer` variable on brand slot.
 
 ## 0.2-RC3
 
