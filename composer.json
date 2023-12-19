@@ -1,57 +1,55 @@
 {
-  "name": "lunarphp/admin",
-  "description": "Admin Hub for Lunar. A modern headless e-commerce solution for Laravel PHP framework.",
-  "keywords": [
-    "lunar",
-    "laravel",
-    "ecommerce",
-    "e-commerce",
-    "headless",
-    "store",
-    "shop",
-    "cart"
-  ],
-  "type": "library",
-  "license": "MIT",
-  "minimum-stability": "beta",
-  "authors": [
-    {
-      "name": "Lunar",
-      "homepage": "https://lunarphp.io/"
-    }
-  ],
-  "autoload": {
-    "psr-4": {
-      "Lunar\\Hub\\": "src",
-      "Lunar\\Hub\\Database\\Factories\\": "database/factories",
-      "Lunar\\Hub\\Database\\State\\": "database/state"
+    "name": "lunarphp/lunar",
+    "description": "Admin panel for LunarPHP",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Lunar\\Admin\\": "src/",
+            "Lunar\\Admin\\Database\\Factories\\": "database/factories",
+            "Lunar\\Admin\\Database\\State\\": "database/state"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
-    "files": [
-      "src/helpers.php"
-    ]
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Lunar\\Hub\\Tests\\": "tests"
+    "autoload-dev": {
+        "psr-4": {
+            "Lunar\\Admin\\Tests\\": "tests"
+        }
+    },
+    "minimum-stability": "dev",
+    "require": {
+        "lunarphp/core": "self.version",
+        "filament/filament": "^3.1.23",
+        "filament/spatie-laravel-media-library-plugin": "^3.0-stable",
+        "spatie/laravel-permission": "^5.10",
+        "barryvdh/laravel-dompdf": "^2.0",
+        "technikermathe/blade-lucide-icons": "^v2.24.0",
+        "marvinosswald/filament-input-select-affix": "dev-main",
+        "leandrocfe/filament-apex-charts": "^3.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0",
+        "pestphp/pest": "^2.0",
+        "pestphp/pest-plugin-laravel": "^2.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Lunar\\Admin\\LunarPanelProvider"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "scripts": {
+        "pint": "pint",
+        "test:pest": "pest --parallel",
+        "test": [
+            "@test:pest"
+        ]
     }
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "Lunar\\Hub\\AdminHubServiceProvider"
-      ]
-    }
-  },
-  "require": {
-    "php": "^8.1",
-    "lunarphp/livewire-tables": "self.version",
-    "lunarphp/core": "self.version",
-    "livewire/livewire": "^2.0",
-    "barryvdh/laravel-dompdf": "^2.0",
-    "spatie/laravel-permission": "^5.10"
-  },
-  "require-dev": {
-    "orchestra/testbench": "^7.0|^8.0",
-    "phpunit/phpunit": "^9.5"
-  }
 }

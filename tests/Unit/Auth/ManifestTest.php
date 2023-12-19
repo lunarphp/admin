@@ -1,61 +1,153 @@
 <?php
 
-namespace Lunar\Hub\Tests\Unit\Auth;
+use Lunar\Admin\Auth\Manifest;
+use Lunar\Admin\Support\Facades\LunarPanel;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
-use Lunar\Hub\Auth\Manifest;
-use Lunar\Hub\Auth\Permission;
-use Lunar\Hub\Tests\TestCase;
+uses(\Lunar\Admin\Tests\Feature\Filament\TestCase::class)
+    ->group('unit.manifest');
 
-/**
- * @group hub.auth
- */
-class ManifestTest extends TestCase
-{
-    /** @test */
-    public function can_list_permissions()
-    {
-        $manifest = $this->app->make(Manifest::class);
+beforeEach(fn () => $this->manifest = new Manifest);
 
-        $permissions = $manifest->getPermissions();
+test('manifest can get roles', function () {
+    $roles = $this->manifest->getRoles();
 
-        $this->assertIsIterable($permissions);
-        $this->assertContainsOnlyInstancesOf(Permission::class, $permissions);
-        $this->assertNotEmpty($permissions);
+    expect($roles)
+        ->toBeIterable()
+        ->not->toBeEmpty();
+});
+
+test('manifest can get refreshed roles', function () {
+    $roles = $this->manifest->getRoles()->pluck('handle')->toArray();
+
+    Role::create([
+        'name' => 'role_one',
+        'guard_name' => LunarPanel::getPanel()->getAuthGuard(),
+    ]);
+
+    $cachedRoles = $this->manifest->getRoles()->pluck('handle')->toArray();
+    $refreshedRoles = $this->manifest->getRoles(refresh: true)->pluck('handle')->toArray();
+
+    expect($roles)
+        ->toEqualCanonicalizing($cachedRoles);
+
+    expect($refreshedRoles)
+        ->toContain('role_one');
+
+    expect($refreshedRoles)
+        ->toMatchArray($roles)
+        ->not->toEqualCanonicalizing($roles);
+});
+
+test('manifest can get permissions', function () {
+    $permissions = $this->manifest->getPermissions();
+
+    expect($permissions)
+        ->toBeIterable()
+        ->not->toBeEmpty();
+});
+
+test('manifest can get refreshed permissions', function () {
+    $permissions = $this->manifest->getPermissions()->pluck('handle')->toArray();
+
+    Permission::create([
+        'name' => 'perm_one',
+        'guard_name' => LunarPanel::getPanel()->getAuthGuard(),
+    ]);
+
+    $cachedPermissions = $this->manifest->getPermissions()->pluck('handle')->toArray();
+    $refreshedPermissions = $this->manifest->getPermissions(refresh: true)->pluck('handle')->toArray();
+
+    expect($permissions)
+        ->toEqualCanonicalizing($cachedPermissions);
+
+    expect($refreshedPermissions)
+        ->toContain('perm_one');
+
+    expect($refreshedPermissions)
+        ->toMatchArray($permissions)
+        ->not->toEqualCanonicalizing($permissions);
+});
+
+test('manifest can get grouped permissions', function () {
+    $permissions = $this->manifest->getGroupedPermissions();
+
+    expect($permissions)
+        ->toBeIterable()
+        ->not->toBeEmpty();
+
+    $parent = $permissions->first(fn ($perm) => count($perm->children));
+
+    expect($parent->children)
+        ->toBeIterable()
+        ->not->toBeEmpty();
+
+    $notParent = $permissions->first(fn ($perm) => ! count($perm->children));
+
+    expect($notParent->children)
+        ->toBeIterable()
+        ->toBeEmpty();
+});
+
+test('manifest can get refreshed grouped permissions', function () {
+    $guard = LunarPanel::getPanel()->getAuthGuard();
+    foreach ([
+        'group',
+        'group:child_1',
+    ] as $perm) {
+        Permission::create([
+            'name' => $perm,
+            'guard_name' => $guard,
+        ]);
     }
 
-    /** @test */
-    public function can_add_permission()
-    {
-        $manifest = $this->app->make(Manifest::class);
+    $permissions = $this->manifest->getGroupedPermissions()->first(fn ($perm) => $perm->handle == 'group')->children->pluck('handle')->toArray();
 
-        $manifest->addPermission(function (Permission $permission) {
-            $permission->name('Test Permission')->handle('test-permission')->description('Test!');
-        });
+    Permission::create([
+        'name' => 'group:child_2',
+        'guard_name' => $guard,
+    ]);
 
-        $permission = $manifest->getPermissions()->first(fn ($p) => $p->handle === 'test-permission');
+    $cachedPermissions = $this->manifest->getGroupedPermissions()->first(fn ($perm) => $perm->handle == 'group')->children->pluck('handle')->toArray();
 
-        $this->assertNotNull($permission);
-    }
+    $refreshedPermissions = $this->manifest->getGroupedPermissions(refresh: true)->first(fn ($perm) => $perm->handle == 'group')->children->pluck('handle')->toArray();
 
-    /** @test */
-    public function can_add_permission_as_child_of_another()
-    {
-        $manifest = $this->app->make(Manifest::class);
+    expect($permissions)
+        ->toEqualCanonicalizing($cachedPermissions);
 
-        $manifest->addPermission(function (Permission $permission) {
-            $permission->name('Parent')->handle('test')->description('Parent');
-        });
+    expect($refreshedPermissions)
+        ->toContain('group:child_2');
 
-        $manifest->addPermission(function (Permission $permission) {
-            $permission->name('Child')->handle('test:child')->description('Test Child!');
-        });
+    expect($refreshedPermissions)
+        ->toMatchArray($permissions)
+        ->not->toEqualCanonicalizing($permissions);
+});
 
-        $parent = $manifest->getGroupedPermissions()->first(fn ($p) => $p->handle === 'test');
+test('manifest can set admin', function () {
+    $currentAdmin = $this->manifest->getAdmin();
 
-        $this->assertNotEmpty($parent->children);
+    $this->manifest->useRoleAsAdmin('super_admin');
 
-        $child = $parent->children->first(fn ($c) => $c->handle === 'test:child');
+    $newAdmin = $this->manifest->getAdmin();
 
-        $this->assertNotNull($child);
-    }
-}
+    expect($currentAdmin->toArray())
+        ->not->toEqualCanonicalizing($newAdmin->toArray());
+
+    expect($newAdmin)
+        ->not->toMatchArray($currentAdmin);
+
+});
+
+test('manifest can get roles without admin', function () {
+    $admin = $this->manifest->getAdmin();
+
+    $rolesWithAdmin = $this->manifest->getRoles();
+    $rolesWithoutAdmin = $this->manifest->getRolesWithoutAdmin();
+
+    expect($rolesWithAdmin->pluck('handle')->toArray())
+        ->toMatchArray($admin->toArray());
+
+    expect($rolesWithoutAdmin->pluck('handle')->toArray())
+        ->not->toMatchArray($admin->toArray());
+});
