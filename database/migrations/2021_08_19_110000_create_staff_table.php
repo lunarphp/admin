@@ -4,7 +4,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Lunar\Base\Migration;
 
-class CreateStaffTable extends Migration
+return new class extends Migration
 {
     public function up()
     {
@@ -26,4 +26,4 @@ class CreateStaffTable extends Migration
     {
         Schema::dropIfExists($this->prefix.'staff');
     }
-}
+};
