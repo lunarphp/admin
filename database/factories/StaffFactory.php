@@ -1,26 +1,22 @@
 <?php
 
-namespace Lunar\Hub\Database\Factories;
+namespace Lunar\Admin\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Lunar\Hub\Models\Staff;
+use Lunar\Admin\Models\Staff;
 
 class StaffFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
-     *
-     * @var string
      */
     protected $model = Staff::class;
 
     /**
      * Define the model's default state.
-     *
-     * @return array
      */
-    public function definition()
+    public function definition(): array
     {
         return [
             'firstname' => $this->faker->firstName(),
@@ -35,10 +31,8 @@ class StaffFactory extends Factory
 
     /**
      * Indicate that the model's email address should be unverified.
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
      */
-    public function unverified()
+    public function unverified(): Factory
     {
         return $this->state(function (array $attributes) {
             return [
