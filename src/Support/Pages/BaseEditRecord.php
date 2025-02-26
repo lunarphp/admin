@@ -9,6 +9,7 @@ abstract class BaseEditRecord extends EditRecord
 {
     use Concerns\ExtendsFooterWidgets;
     use Concerns\ExtendsFormActions;
+    use Concerns\ExtendsForms;
     use Concerns\ExtendsHeaderActions;
     use Concerns\ExtendsHeaderWidgets;
     use Concerns\ExtendsHeadings;
@@ -31,5 +32,12 @@ abstract class BaseEditRecord extends EditRecord
         $record = parent::handleRecordUpdate($record, $data);
 
         return $this->callLunarHook('afterUpdate', $record, $data);
+    }
+
+    public function afterSave()
+    {
+        sync_with_search(
+            $this->getRecord()
+        );
     }
 }

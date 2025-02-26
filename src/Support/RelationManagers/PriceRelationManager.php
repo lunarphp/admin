@@ -5,18 +5,18 @@ namespace Lunar\Admin\Support\RelationManagers;
 use Closure;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Unique;
+use Lunar\Admin\Events\ModelPricesUpdated;
 use Lunar\Facades\DB;
 use Lunar\Models\Currency;
 use Lunar\Models\CustomerGroup;
 use Lunar\Models\Price;
 
-class PriceRelationManager extends RelationManager
+class PriceRelationManager extends BaseRelationManager
 {
     protected static string $relationship = 'prices';
 
@@ -74,7 +74,7 @@ class PriceRelationManager extends RelationManager
                                         fn ($query) => $query->whereNull('customer_group_id'),
                                         fn ($query) => $query->where('customer_group_id', $get('customer_group_id')))
                                     ->where('currency_id', $get('currency_id'))
-                                    ->where('priceable_type', get_class($owner))
+                                    ->where('priceable_type', $owner->getMorphClass())
                                     ->where('priceable_id', $owner->id)
                                     ->where('min_quantity', $get('min_quantity'))
                                     ->count();
@@ -99,7 +99,7 @@ class PriceRelationManager extends RelationManager
                                     fn (Unique $rule) => $rule->where('customer_group_id', $get('customer_group_id')))
                                 ->where('min_quantity', $get('min_quantity'))
                                 ->where('currency_id', $get('currency_id'))
-                                ->where('priceable_type', get_class($owner))
+                                ->where('priceable_type', $owner->getMorphClass())
                                 ->where('priceable_id', $owner->id);
                         }
                     )->helperText(
@@ -163,7 +163,7 @@ class PriceRelationManager extends RelationManager
                     ),
                 Tables\Filters\SelectFilter::make('min_quantity')->options(
                     Price::where('priceable_id', $this->getOwnerRecord()->id)
-                        ->where('priceable_type', get_class($this->getOwnerRecord()))
+                        ->where('priceable_type', $this->getOwnerRecord()->getMorphClass())
                         ->get()
                         ->pluck('min_quantity', 'min_quantity')
                 )->label(
@@ -179,6 +179,10 @@ class PriceRelationManager extends RelationManager
                     return $data;
                 })->label(
                     __('lunarpanel::relationmanagers.pricing.table.actions.create.label')
+                )->after(
+                    fn () => ModelPricesUpdated::dispatch(
+                        $this->getOwnerRecord()
+                    )
                 ),
             ])
             ->actions([
@@ -188,8 +192,16 @@ class PriceRelationManager extends RelationManager
                     $data['price'] = (int) ($data['price'] * $currencyModel->factor);
 
                     return $data;
-                }),
-                Tables\Actions\DeleteAction::make(),
+                })->after(
+                    fn () => ModelPricesUpdated::dispatch(
+                        $this->getOwnerRecord()
+                    )
+                ),
+                Tables\Actions\DeleteAction::make()->after(
+                    fn () => ModelPricesUpdated::dispatch(
+                        $this->getOwnerRecord()
+                    )
+                ),
             ]);
     }
 }

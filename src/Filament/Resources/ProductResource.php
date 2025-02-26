@@ -7,7 +7,6 @@ use Filament\Forms;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Form;
 use Filament\Pages\SubNavigationPosition;
-use Filament\Resources\Pages\Page;
 use Filament\Resources\RelationManagers\RelationGroup;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Tables;
@@ -16,6 +15,7 @@ use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Lunar\Admin\Filament\Resources\ProductResource\Pages;
 use Lunar\Admin\Filament\Resources\ProductResource\RelationManagers\CustomerGroupPricingRelationManager;
 use Lunar\Admin\Filament\Resources\ProductResource\RelationManagers\CustomerGroupRelationManager;
@@ -23,14 +23,17 @@ use Lunar\Admin\Filament\Resources\ProductResource\Widgets\ProductOptionsWidget;
 use Lunar\Admin\Filament\Widgets\Products\VariantSwitcherTable;
 use Lunar\Admin\Support\Forms\Components\Attributes;
 use Lunar\Admin\Support\Forms\Components\Tags as TagsComponent;
-use Lunar\Admin\Support\Forms\Components\TranslatedText;
+use Lunar\Admin\Support\Forms\Components\TranslatedText as TranslatedTextInput;
 use Lunar\Admin\Support\RelationManagers\ChannelRelationManager;
 use Lunar\Admin\Support\RelationManagers\MediaRelationManager;
 use Lunar\Admin\Support\RelationManagers\PriceRelationManager;
 use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\Admin\Support\Tables\Columns\TranslatedTextColumn;
+use Lunar\FieldTypes\Text;
+use Lunar\FieldTypes\TranslatedText;
+use Lunar\Models\Attribute;
+use Lunar\Models\Contracts\Product;
 use Lunar\Models\Currency;
-use Lunar\Models\Product;
 use Lunar\Models\ProductVariant;
 use Lunar\Models\Tag;
 
@@ -68,9 +71,9 @@ class ProductResource extends BaseResource
         return __('lunarpanel::global.sections.catalog');
     }
 
-    public static function getRecordSubNavigation(Page $page): array
+    public static function getDefaultSubNavigation(): array
     {
-        return $page->generateNavigationItems([
+        return [
             Pages\EditProduct::class,
             Pages\ManageProductAvailability::class,
             Pages\ManageProductMedia::class,
@@ -82,7 +85,7 @@ class ProductResource extends BaseResource
             Pages\ManageProductUrls::class,
             Pages\ManageProductCollections::class,
             Pages\ManageProductAssociations::class,
-        ]);
+        ];
     }
 
     public static function getWidgets(): array
@@ -135,7 +138,7 @@ class ProductResource extends BaseResource
 
     public static function getSkuValidation(): array
     {
-        return static::callLunarHook('extendSkuValidation', [
+        return static::callStaticLunarHook('extendSkuValidation', [
             'required' => true,
             'unique' => true,
         ]);
@@ -165,15 +168,26 @@ class ProductResource extends BaseResource
         return Forms\Components\TextInput::make('base_price')->numeric()->prefix(
             $currency->code
         )->rules([
-            'min:1',
+            'min:'.(1 / $currency->factor),
             "decimal:0,{$currency->decimal_places}",
         ])->required();
     }
 
     public static function getBaseNameFormComponent(): Component
     {
-        return TranslatedText::make('name')
-            ->label(__('lunarpanel::product.form.name.label'))->required();
+        $nameType = Attribute::whereHandle('name')
+            ->whereAttributeType(
+                static::getModel()::morphName()
+            )
+            ->first()?->type ?: TranslatedText::class;
+
+        $component = TranslatedTextInput::make('name');
+
+        if ($nameType == Text::class) {
+            $component = Forms\Components\TextInput::make('name');
+        }
+
+        return $component->label(__('lunarpanel::product.form.name.label'))->required();
     }
 
     protected static function getBrandFormComponent(): Component
@@ -204,7 +218,9 @@ class ProductResource extends BaseResource
     {
         return TagsComponent::make('tags')
             ->suggestions(Tag::all()->pluck('value')->all())
-            ->label(__('lunarpanel::product.form.tags.label'));
+            ->splitKeys(['Tab', ','])
+            ->label(__('lunarpanel::product.form.tags.label'))
+            ->helperText(__('lunarpanel::product.form.tags.helper_text'));
     }
 
     protected static function getAttributeDataFormComponent(): Component
@@ -219,6 +235,7 @@ class ProductResource extends BaseResource
             ->filters([
                 Tables\Filters\SelectFilter::make('brand')
                     ->relationship('brand', 'name'),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -238,12 +255,17 @@ class ProductResource extends BaseResource
             Tables\Columns\TextColumn::make('status')
                 ->label(__('lunarpanel::product.table.status.label'))
                 ->badge()
+                ->getStateUsing(
+                    fn (Model $record) => $record->deleted_at ? 'deleted' : $record->status
+                )
+                ->formatStateUsing(fn ($state) => __('lunarpanel::product.table.status.states.'.$state))
                 ->color(fn (string $state): string => match ($state) {
                     'draft' => 'warning',
                     'published' => 'success',
+                    'deleted' => 'danger',
                 }),
             SpatieMediaLibraryImageColumn::make('thumbnail')
-                ->collection('images')
+                ->collection(config('lunar.media.collection'))
                 ->conversion('small')
                 ->limit(1)
                 ->square()
@@ -280,7 +302,8 @@ class ProductResource extends BaseResource
             ->attributeData()
             ->limitedTooltip()
             ->limit(50)
-            ->label(__('lunarpanel::product.table.name.label'));
+            ->label(__('lunarpanel::product.table.name.label'))
+            ->searchable();
     }
 
     public static function getSkuTableColumn(): Tables\Columns\Column
@@ -303,7 +326,8 @@ class ProductResource extends BaseResource
             })
             ->listWithLineBreaks()
             ->limitList(1)
-            ->toggleable();
+            ->toggleable()
+            ->searchable();
     }
 
     public static function getDefaultRelations(): array
@@ -319,7 +343,7 @@ class ProductResource extends BaseResource
         ];
     }
 
-    public static function getPages(): array
+    public static function getDefaultPages(): array
     {
         return [
             'index' => Pages\ListProducts::route('/'),
@@ -348,6 +372,14 @@ class ProductResource extends BaseResource
             'variants.sku',
             'tags.value',
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 
     public static function getGlobalSearchEloquentQuery(): Builder

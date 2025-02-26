@@ -7,6 +7,7 @@ use Filament\Forms\Form;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Lunar\Admin\Events\ProductAssociationsUpdated;
 use Lunar\Admin\Filament\Resources\ProductResource;
 use Lunar\Admin\Support\Pages\BaseManageRelatedRecords;
 use Lunar\Models\Product;
@@ -42,7 +43,7 @@ class ManageProductAssociations extends BaseManageRelatedRecords
                     ->required()
                     ->searchable(true)
                     ->getSearchResultsUsing(static function (Forms\Components\Select $component, string $search): array {
-                        return Product::search($search)
+                        return get_search_builder(Product::class, $search)
                             ->get()
                             ->mapWithKeys(fn (Product $record): array => [$record->getKey() => $record->translateAttribute('name')])
                             ->all();
@@ -85,14 +86,26 @@ class ManageProductAssociations extends BaseManageRelatedRecords
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()->after(
+                    fn () => ProductAssociationsUpdated::dispatch(
+                        $this->getOwnerRecord()
+                    )
+                ),
             ])
             ->actions([
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()->after(
+                    fn () => ProductAssociationsUpdated::dispatch(
+                        $this->getOwnerRecord()
+                    )
+                ),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->after(
+                        fn () => ProductAssociationsUpdated::dispatch(
+                            $this->getOwnerRecord()
+                        )
+                    ),
                 ]),
             ]);
     }

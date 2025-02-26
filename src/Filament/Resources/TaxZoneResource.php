@@ -2,20 +2,25 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
+use Awcodes\FilamentBadgeableColumn\Components\Badge;
+use Awcodes\FilamentBadgeableColumn\Components\BadgeableColumn;
 use Filament\Forms;
 use Filament\Forms\Components\Component;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Lunar\Admin\Filament\Clusters\Taxes;
 use Lunar\Admin\Filament\Resources\TaxZoneResource\Pages;
 use Lunar\Admin\Support\Resources\BaseResource;
+use Lunar\Models\Contracts\TaxZone;
 use Lunar\Models\Country;
 use Lunar\Models\State;
-use Lunar\Models\TaxZone;
 
 class TaxZoneResource extends BaseResource
 {
+    protected static ?string $cluster = Taxes::class;
+
     protected static ?string $permission = 'settings:core';
 
     protected static ?string $model = TaxZone::class;
@@ -35,11 +40,6 @@ class TaxZoneResource extends BaseResource
     public static function getNavigationIcon(): ?string
     {
         return FilamentIcon::resolve('lunar::tax');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('lunarpanel::global.sections.settings');
     }
 
     protected static function getMainFormComponents(): array
@@ -318,13 +318,19 @@ class TaxZoneResource extends BaseResource
     protected static function getTableColumns(): array
     {
         return [
-            Tables\Columns\BooleanColumn::make('default')
-                ->label(__('lunarpanel::taxzone.table.default.label')),
-            Tables\Columns\TextColumn::make('name')
+            BadgeableColumn::make('name')
+                ->separator('')
+                ->suffixBadges([
+                    Badge::make('default')
+                        ->label(__('lunarpanel::taxzone.table.default.label'))
+                        ->color('gray')
+                        ->visible(fn (Model $record) => $record->default),
+                ])
                 ->label(__('lunarpanel::taxzone.table.name.label')),
             Tables\Columns\TextColumn::make('zone_type')
                 ->label(__('lunarpanel::taxzone.table.zone_type.label')),
-            Tables\Columns\BooleanColumn::make('active')
+            Tables\Columns\IconColumn::make('active')
+                ->boolean()
                 ->label(__('lunarpanel::taxzone.table.active.label')),
         ];
     }
@@ -336,7 +342,7 @@ class TaxZoneResource extends BaseResource
         ];
     }
 
-    public static function getPages(): array
+    public static function getDefaultPages(): array
     {
         return [
             'index' => Pages\ListTaxZones::route('/'),

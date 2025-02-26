@@ -13,6 +13,7 @@ abstract class BaseListRecords extends ListRecords
     use Concerns\ExtendsHeaderWidgets;
     use Concerns\ExtendsHeadings;
     use Concerns\ExtendsTablePagination;
+    use Concerns\ExtendsTabs;
     use \Lunar\Admin\Support\Concerns\CallsHooks;
 
     protected function applySearchToTableQuery(Builder $query): Builder
@@ -31,7 +32,7 @@ abstract class BaseListRecords extends ListRecords
             $scoutEnabled &&
             $isScoutSearchable
         ) {
-            $ids = collect(static::getModel()::search($search)->keys())->map(
+            $ids = collect(static::getModel()::search($search)->take(100)->keys())->map(
                 fn ($result) => str_replace(static::getModel().'::', '', $result)
             );
 
@@ -44,7 +45,7 @@ abstract class BaseListRecords extends ListRecords
 
             $query->when(
                 ! $ids->isEmpty(),
-                fn ($query) => $query->orderByRaw("field(id, {$placeholders})", $ids->toArray()) // TODO: Only supports MySQL
+                fn ($query) => $query->orderBySequence($ids->toArray())
             );
         }
 

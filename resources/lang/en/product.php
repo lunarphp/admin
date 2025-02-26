@@ -19,6 +19,11 @@ return [
     'table' => [
         'status' => [
             'label' => 'Status',
+            'states' => [
+                'deleted' => 'Deleted',
+                'draft' => 'Draft',
+                'published' => 'Published',
+            ],
         ],
         'name' => [
             'label' => 'Name',
@@ -72,6 +77,7 @@ return [
         ],
         'tags' => [
             'label' => 'Tags',
+            'helper_text' => 'Separate tags by pressing Enter, Tab or comma (,)',
         ],
         'collections' => [
             'label' => 'Collections',
@@ -82,8 +88,8 @@ return [
         'availability' => [
             'label' => 'Availability',
         ],
-        'media' => [
-            'label' => 'Media',
+        'edit' => [
+            'title' => 'Basic Information',
         ],
         'identifiers' => [
             'label' => 'Product Identifiers',

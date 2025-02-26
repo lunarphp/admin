@@ -3,14 +3,14 @@
 namespace Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers;
 
 use Filament\Forms;
-use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Lunar\Admin\Support\RelationManagers\BaseRelationManager;
 use Lunar\Models\Product;
 use Lunar\Models\ProductVariant;
 
-class ProductVariantLimitationRelationManager extends RelationManager
+class ProductVariantLimitationRelationManager extends BaseRelationManager
 {
     protected static bool $isLazy = false;
 
@@ -21,7 +21,7 @@ class ProductVariantLimitationRelationManager extends RelationManager
         return false;
     }
 
-    public function table(Table $table): Table
+    public function getDefaultTable(Table $table): Table
     {
 
         return $table
@@ -34,7 +34,7 @@ class ProductVariantLimitationRelationManager extends RelationManager
             ->paginated(false)
             ->modifyQueryUsing(
                 fn ($query) => $query->whereIn('type', ['limitation', 'exclusion'])
-                    ->wherePurchasableType(ProductVariant::class)
+                    ->wherePurchasableType(ProductVariant::morphName())
                     ->whereHas('purchasable')
             )
             ->headerActions([
@@ -45,7 +45,7 @@ class ProductVariantLimitationRelationManager extends RelationManager
                             Forms\Components\MorphToSelect\Type::make(ProductVariant::class)
                                 ->titleAttribute('sku')
                                 ->getSearchResultsUsing(static function (Forms\Components\Select $component, string $search): array {
-                                    $products = Product::search($search)
+                                    $products = get_search_builder(Product::class, $search)
                                         ->get();
 
                                     return ProductVariant::whereIn('product_id', $products->pluck('id'))

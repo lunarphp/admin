@@ -11,6 +11,7 @@ use Lunar\Admin\Support\FieldTypes\Number;
 use Lunar\Admin\Support\FieldTypes\TextField;
 use Lunar\Admin\Support\FieldTypes\Toggle;
 use Lunar\Admin\Support\FieldTypes\TranslatedText;
+use Lunar\Admin\Support\FieldTypes\Vimeo;
 use Lunar\Admin\Support\FieldTypes\YouTube;
 use Lunar\FieldTypes\Dropdown as DrodownFieldType;
 use Lunar\FieldTypes\File as FileFieldType;
@@ -19,6 +20,7 @@ use Lunar\FieldTypes\Number as NumberFieldType;
 use Lunar\FieldTypes\Text as TextFieldType;
 use Lunar\FieldTypes\Toggle as ToggleFieldType;
 use Lunar\FieldTypes\TranslatedText as TranslatedTextFieldType;
+use Lunar\FieldTypes\Vimeo as VimeoFieldType;
 use Lunar\FieldTypes\YouTube as YouTubeFieldType;
 use Lunar\Models\Attribute;
 
@@ -31,6 +33,7 @@ class AttributeData
         TranslatedTextFieldType::class => TranslatedText::class,
         ToggleFieldType::class => Toggle::class,
         YouTubeFieldType::class => YouTube::class,
+        VimeoFieldType::class => Vimeo::class,
         NumberFieldType::class => Number::class,
         FileFieldType::class => File::class,
     ];
@@ -38,13 +41,43 @@ class AttributeData
     public function getFilamentComponent(Attribute $attribute): Component
     {
         $fieldType = $this->fieldTypes[
-            $attribute->type
+        $attribute->type
         ] ?? TextField::class;
 
-        return $fieldType::getFilamentComponent($attribute)->label(
-            $attribute->translate('name')
-        )
-            ->formatStateUsing(fn ($state) => ($state ?: new $attribute->type))
+        /** @var Component $component */
+        $component = $fieldType::getFilamentComponent($attribute);
+
+        return $component
+            ->label(
+                $attribute->translate('name')
+            )
+            ->formatStateUsing(function ($state) use ($attribute) {
+                if (
+                    ! $state ||
+                    (get_class($state) != $attribute->type)
+                ) {
+                    return new $attribute->type;
+                }
+
+                return $state;
+            })
+            ->mutateDehydratedStateUsing(function ($state) use ($attribute) {
+                if ($attribute->type == FileFieldType::class) {
+                    $instance = new $attribute->type;
+                    $instance->setValue($state);
+
+                    return $instance;
+                }
+
+                if (
+                    ! $state ||
+                    (get_class($state) != $attribute->type)
+                ) {
+                    return new $attribute->type;
+                }
+
+                return $state;
+            })
             ->required($attribute->required)
             ->default($attribute->default_value);
     }
@@ -61,7 +94,7 @@ class AttributeData
         return collect($this->fieldTypes)->keys();
     }
 
-    public function getConfigurationFields(string $type = null): array
+    public function getConfigurationFields(?string $type = null): array
     {
         $fieldType = $this->fieldTypes[$type] ?? null;
 

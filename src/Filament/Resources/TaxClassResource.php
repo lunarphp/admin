@@ -2,17 +2,23 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
+use Awcodes\FilamentBadgeableColumn\Components\Badge;
+use Awcodes\FilamentBadgeableColumn\Components\BadgeableColumn;
 use Filament\Forms;
 use Filament\Forms\Components\Component;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Lunar\Admin\Filament\Clusters\Taxes;
 use Lunar\Admin\Filament\Resources\TaxClassResource\Pages;
 use Lunar\Admin\Support\Resources\BaseResource;
-use Lunar\Models\TaxClass;
+use Lunar\Models\Contracts\TaxClass;
 
 class TaxClassResource extends BaseResource
 {
+    protected static ?string $cluster = Taxes::class;
+
     protected static ?string $permission = 'settings:core';
 
     protected static ?string $model = TaxClass::class;
@@ -34,16 +40,13 @@ class TaxClassResource extends BaseResource
         return FilamentIcon::resolve('lunar::tax');
     }
 
-    public static function getNavigationGroup(): ?string
-    {
-        return __('lunarpanel::global.sections.settings');
-    }
-
     protected static function getMainFormComponents(): array
     {
         return [
-            static::getNameFormComponent(),
-            static::getDefaultFormComponent(),
+            Forms\Components\Section::make()->schema([
+                static::getNameFormComponent(),
+                static::getDefaultFormComponent(),
+            ]),
         ];
     }
 
@@ -82,9 +85,14 @@ class TaxClassResource extends BaseResource
     protected static function getTableColumns(): array
     {
         return [
-            Tables\Columns\BooleanColumn::make('default')
-                ->label(__('lunarpanel::taxzone.table.default.label')),
-            Tables\Columns\TextColumn::make('name')
+            BadgeableColumn::make('name')
+                ->separator('')
+                ->suffixBadges([
+                    Badge::make('default')
+                        ->label(__('lunarpanel::taxclass.table.default.label'))
+                        ->color('gray')
+                        ->visible(fn (Model $record) => $record->default),
+                ])
                 ->label(__('lunarpanel::taxclass.table.name.label')),
         ];
     }
@@ -96,7 +104,7 @@ class TaxClassResource extends BaseResource
         ];
     }
 
-    public static function getPages(): array
+    public static function getDefaultPages(): array
     {
         return [
             'index' => Pages\ListTaxClasses::route('/'),

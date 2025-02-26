@@ -5,15 +5,16 @@ namespace Lunar\Admin\Filament\Resources;
 use Filament\Forms;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Form;
-use Filament\Pages\Page;
 use Filament\Pages\SubNavigationPosition;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
+use Lunar\Admin\Base\LunarPanelDiscountInterface;
 use Lunar\Admin\Filament\Resources\DiscountResource\Pages;
 use Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers\BrandLimitationRelationManager;
 use Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers\CollectionLimitationRelationManager;
+use Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers\CustomerLimitationRelationManager;
 use Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers\ProductConditionRelationManager;
 use Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers\ProductLimitationRelationManager;
 use Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers\ProductRewardRelationManager;
@@ -22,8 +23,8 @@ use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\DiscountTypes\AmountOff;
 use Lunar\DiscountTypes\BuyXGetY;
 use Lunar\Facades\Discounts;
+use Lunar\Models\Contracts\Discount;
 use Lunar\Models\Currency;
-use Lunar\Models\Discount;
 
 class DiscountResource extends BaseResource
 {
@@ -52,11 +53,23 @@ class DiscountResource extends BaseResource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Sales';
+        return __('lunarpanel::global.sections.sales');
     }
 
     public static function getDefaultForm(Form $form): Form
     {
+        $discountSchemas = Discounts::getTypes()->map(function ($discount) {
+            if (! $discount instanceof LunarPanelDiscountInterface) {
+                return;
+            }
+
+            return Forms\Components\Section::make(Str::slug(get_class($discount)))
+                ->heading($discount->getName())
+                ->visible(
+                    fn (Forms\Get $get) => $get('type') == get_class($discount)
+                )->schema($discount->lunarPanelSchema());
+        })->filter();
+
         return $form->schema([
             Forms\Components\Section::make('')->schema(
                 static::getMainFormComponents()
@@ -84,6 +97,7 @@ class DiscountResource extends BaseResource
                 )->schema(
                     static::getAmountOffFormComponents()
                 ),
+            ...$discountSchemas,
         ]);
     }
 
@@ -305,6 +319,12 @@ class DiscountResource extends BaseResource
                         __('lunarpanel::discount.form.max_reward_qty.helper_text')
                     )->numeric(),
             ])->columns(2),
+            Forms\Components\Toggle::make('data.automatically_add_rewards')
+                ->label(
+                    __('lunarpanel::discount.form.automatic_rewards.label')
+                )->helperText(
+                    __('lunarpanel::discount.form.automatic_rewards.helper_text')
+                ),
         ];
     }
 
@@ -335,13 +355,14 @@ class DiscountResource extends BaseResource
                 ->label(__('lunarpanel::discount.table.status.label'))
                 ->badge()
                 ->color(fn (string $state): string => match ($state) {
-                    Discount::ACTIVE => 'success',
-                    Discount::EXPIRED => 'danger',
-                    Discount::PENDING => 'gray',
-                    Discount::SCHEDULED => 'info',
+                    \Lunar\Models\Discount::ACTIVE => 'success',
+                    \Lunar\Models\Discount::EXPIRED => 'danger',
+                    \Lunar\Models\Discount::PENDING => 'gray',
+                    \Lunar\Models\Discount::SCHEDULED => 'info',
                 }),
             Tables\Columns\TextColumn::make('name')
-                ->label(__('lunarpanel::discount.table.name.label')),
+                ->label(__('lunarpanel::discount.table.name.label'))
+                ->searchable(),
             Tables\Columns\TextColumn::make('type')
                 ->formatStateUsing(function ($state) {
                     return (new $state)->getName();
@@ -356,13 +377,13 @@ class DiscountResource extends BaseResource
         ];
     }
 
-    public static function getRecordSubNavigation(Page $page): array
+    public static function getDefaultSubNavigation(): array
     {
-        return $page->generateNavigationItems([
+        return [
             Pages\EditDiscount::class,
             Pages\ManageDiscountAvailability::class,
             Pages\ManageDiscountLimitations::class,
-        ]);
+        ];
     }
 
     protected static function getDefaultRelations(): array
@@ -372,6 +393,7 @@ class DiscountResource extends BaseResource
             BrandLimitationRelationManager::class,
             ProductLimitationRelationManager::class,
             ProductVariantLimitationRelationManager::class,
+            CustomerLimitationRelationManager::class,
             ProductRewardRelationManager::class,
             ProductConditionRelationManager::class,
             ProductRewardRelationManager::class,
@@ -379,7 +401,7 @@ class DiscountResource extends BaseResource
         ];
     }
 
-    public static function getPages(): array
+    public static function getDefaultPages(): array
     {
         return [
             'index' => Pages\ListDiscounts::route('/'),

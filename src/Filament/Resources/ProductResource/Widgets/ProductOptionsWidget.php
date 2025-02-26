@@ -14,6 +14,7 @@ use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Lunar\Admin\Actions\Products\MapVariantsToProductOptions;
+use Lunar\Admin\Events\ProductVariantOptionsUpdated;
 use Lunar\Admin\Filament\Resources\ProductVariantResource;
 use Lunar\Facades\DB;
 use Lunar\Models\Language;
@@ -80,7 +81,9 @@ class ProductOptionsWidget extends BaseWidget implements HasActions, HasForms
                         fn ($value) => $this->mapOptionValue($value, true)
                     )->toArray()
                 );
-            });
+            })->after(
+                fn () => ProductVariantOptionsUpdated::dispatch($this->record)
+            );
     }
 
     public function configureBaseOptions(): void
@@ -102,7 +105,7 @@ class ProductOptionsWidget extends BaseWidget implements HasActions, HasForms
         $options = [];
 
         foreach ($productOptions as $productOption) {
-            $values = $productOption->values->map(function ($value) {
+            $values = $productOption->values->count() ? $productOption->values->map(function ($value) {
                 return $this->mapOptionValue($value, true);
             })->merge(
                 $disabledSharedOptionValues->filter(
@@ -110,7 +113,7 @@ class ProductOptionsWidget extends BaseWidget implements HasActions, HasForms
                 )->map(
                     fn ($value) => $this->mapOptionValue($value, false)
                 )
-            )->sortBy('position')->values()->toArray();
+            )->sortBy('position')->values()->toArray() : [];
 
             $options[] = $this->mapOption($productOption, $values);
         }
@@ -242,7 +245,7 @@ class ProductOptionsWidget extends BaseWidget implements HasActions, HasForms
                     )]
             )->toArray();
 
-        $variants = $this->record->variants->load('values.option')->map(function ($variant) {
+        $variants = $this->record->variants->load(['basePrices.currency', 'basePrices.priceable', 'values.option'])->map(function ($variant) {
             return [
                 'id' => $variant->id,
                 'sku' => $variant->sku,
@@ -432,7 +435,9 @@ class ProductOptionsWidget extends BaseWidget implements HasActions, HasForms
                 Notification::make()->title(
                     __('lunarpanel::productoption.widgets.product-options.notifications.save-variants.success.title')
                 )->success()->send();
-            });
+            })->after(
+                fn () => ProductVariantOptionsUpdated::dispatch($this->record)
+            );
     }
 
     public function getVariantLink($variantId)

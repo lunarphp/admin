@@ -9,7 +9,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Lunar\Admin\Filament\Resources\TagResource\Pages;
 use Lunar\Admin\Support\Resources\BaseResource;
-use Lunar\Models\Tag;
+use Lunar\Models\Contracts\Tag;
 
 class TagResource extends BaseResource
 {
@@ -87,7 +87,7 @@ class TagResource extends BaseResource
         ];
     }
 
-    public static function getPages(): array
+    public static function getDefaultPages(): array
     {
         return [
             'index' => Pages\ListTags::route('/'),
