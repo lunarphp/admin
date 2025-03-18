@@ -123,6 +123,7 @@ class ProductResource extends BaseResource
                         static::getMainFormComponents(),
                     ),
                 static::getAttributeDataFormComponent(),
+                static::getVariantAttributeDataFormComponent(),
             ])
             ->columns(1);
     }
@@ -225,7 +226,14 @@ class ProductResource extends BaseResource
 
     protected static function getAttributeDataFormComponent(): Component
     {
-        return Attributes::make()->statePath('attribute_data');
+        return Attributes::make();
+    }
+
+    protected static function getVariantAttributeDataFormComponent(): Component
+    {
+        return Attributes::make()
+            ->using(ProductVariant::class)
+            ->relationship('variant');
     }
 
     public static function getDefaultTable(Table $table): Table
