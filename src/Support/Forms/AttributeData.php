@@ -45,7 +45,7 @@ class AttributeData
         $attribute->type
         ] ?? TextField::class;
 
-        /** @var \Filament\Schemas\Components\Component $component */
+        /** @var Component $component */
         $component = $fieldType::getFilamentComponent($attribute);
 
         return $component
@@ -53,13 +53,13 @@ class AttributeData
                 $attribute->translate('name')
             )
             ->formatStateUsing(function ($state) use ($attribute) {
-                if ($state instanceof FieldType) {
-                    return $state->getValue();
+                $value = $state instanceof FieldType ? $state->getValue() : $state;
+
+                if ($value === null) {
+                    $value = (new $attribute->type)->getValue();
                 }
 
-                $instance = new $attribute->type;
-
-                return $instance->getValue();
+                return is_string($value) && blank($value) ? null : $value;
             })
             ->mutateStateForValidationUsing(function ($state) {
                 if ($state instanceof FieldType) {
