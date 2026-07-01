@@ -2,137 +2,55 @@
 
 namespace Lunar\Admin\Support\Resources;
 
-use Filament\Facades\Filament;
+use Filament\Pages\Page;
+use Filament\Resources\RelationManagers\RelationGroup;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Resources\RelationManagers\RelationManagerConfiguration;
 use Filament\Resources\Resource;
-use Illuminate\Database\Connection;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
-use Lunar\Admin\Support\Concerns\CallsHooks;
-use Lunar\Admin\Support\Resources\Concerns\ExtendsForms;
-use Lunar\Admin\Support\Resources\Concerns\ExtendsPages;
-use Lunar\Admin\Support\Resources\Concerns\ExtendsRelationManagers;
-use Lunar\Admin\Support\Resources\Concerns\ExtendsSubnavigation;
-use Lunar\Admin\Support\Resources\Concerns\ExtendsTables;
-use Lunar\Base\Traits\Searchable;
-use Lunar\FieldTypes\TranslatedText;
-use Lunar\Models\Attribute;
-use ReflectionClass;
-
-use function Filament\Support\generate_search_term_expression;
+use Lunar\Admin\Support\Resources\Concerns\HasLunarPermissions;
+use Lunar\Admin\Support\Resources\Concerns\HasScoutGlobalSearch;
+use Lunar\Admin\Support\Resources\Concerns\ResolvesModelContract;
+use Lunar\Filament\Support\Concerns\CallsHooks;
 
 class BaseResource extends Resource
 {
     use CallsHooks;
-    use ExtendsForms;
-    use ExtendsPages;
-    use ExtendsRelationManagers;
-    use ExtendsSubnavigation;
-    use ExtendsTables;
+    use HasLunarPermissions;
+    use HasScoutGlobalSearch;
+    use ResolvesModelContract;
 
-    protected static ?string $permission = null;
-
-    public static function registerNavigationItems(): void
+    public static function getPages(): array
     {
-        if (! static::hasPermission()) {
-            return;
-        }
-
-        parent::registerNavigationItems();
+        return self::callStaticLunarHook('extendPages', static::getDefaultPages());
     }
 
-    public static function can(string $action, ?Model $record = null): bool
+    protected static function getDefaultPages(): array
     {
-        return static::hasPermission();
-    }
-
-    protected static function hasPermission(): bool
-    {
-        if (! static::$permission) {
-            return true;
-        }
-
-        $user = Filament::auth()->user();
-
-        return $user->can(static::$permission);
-    }
-
-    public static function getModel(): string
-    {
-        $class = new ReflectionClass(static::$model);
-
-        if ($class->isInterface()) {
-            return app()->get(static::$model)::class;
-        }
-
-        return parent::getModel();
+        return [];
     }
 
     /**
-     * Override filament query builder
+     * @return array<class-string<RelationManager> | RelationGroup | RelationManagerConfiguration>
      */
-    protected static function applyGlobalSearchAttributeConstraints(Builder $query, string $search): void
+    public static function getRelations(): array
     {
-        $scoutEnabled = config('lunar.panel.scout_enabled', false);
-        $isScoutSearchable = in_array(Searchable::class, class_uses_recursive(static::getModel()));
-
-        if (
-            $scoutEnabled &&
-            $isScoutSearchable
-        ) {
-            $ids = collect(static::getModel()::search($search)->keys())->map(
-                fn ($result) => str_replace(static::getModel().'::', '', $result)
-            );
-
-            $query
-                ->whereIn('id', $ids)
-                ->orderBySequence($ids);
-        } else {
-            /** @var Connection $databaseConnection */
-            $databaseConnection = $query->getConnection();
-
-            $search = generate_search_term_expression($search, static::isGlobalSearchForcedCaseInsensitive(), $databaseConnection);
-
-            foreach (explode(' ', $search) as $searchWord) {
-                $query->where(function (Builder $query) use ($searchWord) {
-                    $isFirst = true;
-
-                    $searchableAttributes = static::getGloballySearchableAttributes();
-
-                    static::mapSearchableAttributes($searchableAttributes);
-
-                    foreach ($searchableAttributes as $attributes) {
-                        static::applyGlobalSearchAttributeConstraint(
-                            query: $query,
-                            search: $searchWord,
-                            searchAttributes: Arr::wrap($attributes),
-                            isFirst: $isFirst,
-                        );
-                    }
-                });
-            }
-        }
+        return self::callStaticLunarHook('getRelations', static::getDefaultRelations());
     }
 
-    /**
-     * Return map hydrated with attributes
-     *
-     * @return array
-     */
-    protected static function mapSearchableAttributes(array &$map)
+    protected static function getDefaultRelations(): array
     {
-        $attributes = Attribute::whereAttributeType(
-            static::getModel()::morphName()
-        )
-            ->whereSearchable(true)
-            ->get();
+        return [];
+    }
 
-        foreach ($attributes as $attribute) {
-            if ($attribute->type == TranslatedText::class) {
-                array_push($map, 'attribute_data->'.$attribute->handle.'->value');
-            }
-        }
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        $pages = self::callStaticLunarHook('extendSubNavigation', static::getDefaultSubNavigation());
 
-        return $map;
+        return $page->generateNavigationItems($pages);
+    }
+
+    protected static function getDefaultSubNavigation(): array
+    {
+        return [];
     }
 }

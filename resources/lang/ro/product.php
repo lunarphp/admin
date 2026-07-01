@@ -1,19 +1,15 @@
 <?php
 
 return [
-
     'label' => 'Produs',
-
     'plural_label' => 'Produse',
-
     'tabs' => [
         'all' => 'Toate',
+        'published' => 'Published',
+        'draft' => 'Draft',
+        'archived' => 'Archived',
     ],
-
     'status' => [
-        'unpublished' => [
-            'content' => 'În prezent în stadiu de ciornă, acest produs este indisponibil în toate canalele și grupurile de clienți.',
-        ],
         'availability' => [
             'customer_groups' => 'Acest produs nu este disponibil momentan pentru niciun grup de clienți.',
             'channels' => 'Acest produs nu este disponibil momentan în niciun canal.',
@@ -21,7 +17,6 @@ return [
             'no_default_customer_group' => 'Niciun grup de clienți implicit nu este setat, așa că vizibilitatea pentru vizitatori nu poate fi controlată aici. Marcați un grup de clienți ca implicit pentru a gestiona accesul vizitatorilor.',
         ],
     ],
-
     'table' => [
         'status' => [
             'label' => 'Stare',
@@ -47,14 +42,18 @@ return [
             'label' => 'Tip produs',
         ],
     ],
-
     'actions' => [
         'edit_status' => [
             'label' => 'Actualizează starea',
+            'label_with_state' => 'Status: :state',
             'heading' => 'Actualizează starea',
         ],
+        'delete' => [
+            'confirm' => 'This permanently deletes the product and cannot be undone. If you want to hide it from the storefront without losing it, archive it instead.',
+            'blocked' => 'This product has appeared on past orders and cannot be deleted — archive it instead so historical orders keep their reference.',
+            'disabled_tooltip' => 'Products with order history can\'t be deleted. Archive instead.',
+        ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'Nume',
@@ -79,6 +78,10 @@ return [
                     'label' => 'Ciornă',
                     'description' => 'Acest produs va fi ascuns în toate canalele și grupurile de clienți',
                 ],
+                'archived' => [
+                    'label' => 'Archived',
+                    'description' => 'This product is retired but still referenced by historical orders. Move back to Draft to revive it.',
+                ],
             ],
         ],
         'tags' => [
@@ -90,7 +93,6 @@ return [
             'select_collection' => 'Selectează o colecție',
         ],
     ],
-
     'pages' => [
         'availability' => [
             'label' => 'Disponibilitate',
@@ -129,5 +131,4 @@ return [
             'label' => 'Asocieri produs',
         ],
     ],
-
 ];

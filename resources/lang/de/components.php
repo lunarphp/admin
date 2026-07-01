@@ -6,22 +6,31 @@ return [
             'updated' => 'Tags aktualisiert',
         ],
     ],
-
     'activity-log' => [
         'input' => [
             'placeholder' => 'Einen Kommentar hinzufügen',
         ],
-
         'action' => [
             'add-comment' => 'Kommentar hinzufügen',
         ],
-
         'system' => 'System',
-
         'partials' => [
             'orders' => [
                 'order_created' => 'Bestellung erstellt',
                 'status_change' => 'Status aktualisiert',
+                'order_closed' => 'Bestellung abgeschlossen',
+                'order_reopened' => 'Bestellung wieder geöffnet',
+                'order_cancelled' => 'Bestellung storniert (:reason)',
+                'order_cancelled_no_reason' => 'Bestellung storniert',
+
+                'email_notification' => 'Sent :notification to :email',
+
+                'email_notification_fallback' => 'a notification',
+                'fulfilment_state' => 'Fulfillment #:id als :state markiert',
+                'fulfilment_held' => 'Fulfillment #:id angehalten (:reason)',
+                'fulfilment_held_no_reason' => 'Fulfillment #:id angehalten',
+                'fulfilment_released' => 'Fulfillment #:id freigegeben',
+
                 'capture' => 'Zahlung von :amount auf Karte mit Endung :last_four',
                 'authorized' => 'Autorisierung von :amount auf Karte mit Endung :last_four',
                 'refund' => 'Rückerstattung von :amount auf Karte mit Endung :last_four',
@@ -41,18 +50,15 @@ return [
                 'removed' => 'Entfernt',
             ],
         ],
-
         'notification' => [
             'comment_added' => 'Kommentar hinzugefügt',
         ],
     ],
-
     'forms' => [
         'youtube' => [
             'helperText' => 'Geben Sie die ID des YouTube-Videos ein, z.B. dQw4w9WgXcQ',
         ],
     ],
-
     'collection-tree-view' => [
         'actions' => [
             'move' => [
@@ -75,7 +81,6 @@ return [
             ],
         ],
     ],
-
     'product-options-list' => [
         'add-option' => [
             'label' => 'Option hinzufügen',

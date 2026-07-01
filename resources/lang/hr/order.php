@@ -1,22 +1,17 @@
 <?php
 
 return [
-
     'label' => 'Narudžba',
-
     'plural_label' => 'Narudžbe',
-
     'breadcrumb' => [
         'manage' => 'Upravljanje',
     ],
-
     'transactions' => [
         'capture' => 'Naplaćeno',
         'intent' => 'Namjera',
         'refund' => 'Vraćeno',
         'failed' => 'Neuspješno',
     ],
-
     'table' => [
         'status' => [
             'label' => 'Status',
@@ -59,7 +54,6 @@ return [
             'label' => 'Naručeno prije',
         ],
     ],
-
     'form' => [
         'address' => [
             'first_name' => [
@@ -80,6 +74,9 @@ return [
             'company_name' => [
                 'label' => 'Naziv tvrtke',
             ],
+            'tax_identifier' => [
+                'label' => 'Tax Identifier',
+            ],
             'contact_phone' => [
                 'label' => 'Telefon',
             ],
@@ -99,39 +96,33 @@ return [
                 'label' => 'Zemlja',
             ],
         ],
-
         'reference' => [
             'label' => 'Referenca',
         ],
         'status' => [
-            'label' => 'Status',
+            'label' => 'Order',
         ],
         'transaction' => [
             'label' => 'Transakcija',
         ],
         'amount' => [
             'label' => 'Iznos',
-
             'hint' => [
                 'less_than_total' => 'Želite naplatiti iznos koji je manji od ukupne vrijednosti transakcije',
             ],
         ],
-
         'notes' => [
             'label' => 'Bilješke',
         ],
         'confirm' => [
             'label' => 'Potvrdi',
-
             'alert' => 'Potrebna je potvrda',
-
             'hint' => [
                 'capture' => 'Molimo potvrdite da želite naplatiti ovu uplatu',
                 'refund' => 'Molimo potvrdite da želite vratiti ovaj iznos.',
             ],
         ],
     ],
-
     'infolist' => [
         'notes' => [
             'label' => 'Bilješke',
@@ -171,7 +162,7 @@ return [
             'message' => 'U trenutku narudžbe: :count',
         ],
         'status' => [
-            'label' => 'Status',
+            'label' => 'Order',
         ],
         'reference' => [
             'label' => 'Referenca',
@@ -231,7 +222,6 @@ return [
             'refunded' => 'Ova narudžba je vraćena.',
         ],
     ],
-
     'action' => [
         'bulk_update_status' => [
             'label' => 'Ažuriraj status',
@@ -257,14 +247,11 @@ return [
         ],
         'edit_address' => [
             'label' => 'Uredi',
-
             'notification' => [
                 'error' => 'Greška',
-
                 'billing_address' => [
                     'saved' => 'Adresa naplate spremljena',
                 ],
-
                 'shipping_address' => [
                     'saved' => 'Adresa dostave spremljena',
                 ],
@@ -272,10 +259,15 @@ return [
         ],
         'edit_tags' => [
             'label' => 'Uredi',
+            'form' => [
+                'tags' => [
+                    'label' => 'Tags',
+                    'helper_text' => 'Separate tags by pressing Enter, Tab or comma (,)',
+                ],
+            ],
         ],
         'capture_payment' => [
             'label' => 'Naplati uplatu',
-
             'notification' => [
                 'error' => 'Došlo je do problema prilikom naplate',
                 'success' => 'Naplata uspješna',
@@ -283,7 +275,6 @@ return [
         ],
         'refund_payment' => [
             'label' => 'Povrat',
-
             'notification' => [
                 'error' => 'Došlo je do problema prilikom povrata',
                 'success' => 'Povrat uspješan',
@@ -291,4 +282,176 @@ return [
         ],
     ],
 
+    'fulfilments' => [
+        'heading' => 'Ispunjenja',
+        'unreferenced' => 'Ispunjenje #:id',
+        'on_hold' => 'Na čekanju',
+        'empty' => 'Još nema ispunjenja.',
+        'columns' => [
+            'reference' => 'Referenca',
+            'state' => 'Stanje',
+            'items' => 'Stavke',
+            'tracking' => 'Praćenje',
+            'shipped_at' => 'Otpremljeno',
+            'handed_over' => [
+                'shipping' => 'Otpremljeno',
+                'collection' => 'Preuzeto',
+                'digital' => 'Stavljeno na raspolaganje',
+            ],
+            'handed_over_default' => 'Ispunjeno',
+        ],
+        'actions' => [
+            'more' => 'Više radnji',
+            'notify' => 'Obavijesti kupca',
+            'add_tracking' => [
+                'label' => 'Dodaj praćenje',
+                'modal_heading' => 'Dodaj praćenje',
+                'notification' => [
+                    'success' => 'Praćenje dodano.',
+                    'error' => 'Nije moguće dodati praćenje.',
+                ],
+            ],
+            'remove_tracking' => [
+                'label' => 'Ukloni praćenje',
+                'notification' => [
+                    'success' => 'Praćenje uklonjeno.',
+                    'error' => 'Nije moguće ukloniti praćenje.',
+                ],
+            ],
+            'create' => [
+                'label' => 'Stvori ispunjenje',
+                'modal_heading' => 'Stvori ispunjenje',
+                'empty' => 'Sve stavke već su ispunjene.',
+                'notification' => [
+                    'success' => 'Ispunjenje stvoreno.',
+                    'error' => 'Nije moguće stvoriti ispunjenje.',
+                ],
+            ],
+            'ship' => [
+                'label' => 'Označi otpremljeno',
+                'modal_heading' => 'Označi ispunjenje kao otpremljeno',
+                'notification' => [
+                    'success' => 'Ispunjenje označeno kao otpremljeno.',
+                    'error' => 'Nije moguće otpremiti ispunjenje.',
+                ],
+            ],
+            'fulfil' => [
+                'label' => 'Označi ispunjeno',
+                'modal_heading' => 'Označi ispunjenje kao ispunjeno',
+                'labels' => [
+                    'collection' => 'Označi preuzeto',
+                ],
+                'notification' => [
+                    'success' => 'Ispunjenje označeno kao ispunjeno.',
+                    'error' => 'Nije moguće ispuniti ispunjenje.',
+                ],
+            ],
+            'cancel' => [
+                'label' => 'Otkaži ispunjenje',
+                'modal_heading' => 'Otkaži ispunjenje',
+                'description' => 'Ovo vraća ispunjenje na čekanje kako bi se moglo ponovno nastaviti. Svi podaci o otpremi se brišu.',
+                'notification' => [
+                    'success' => 'Ispunjenje otkazano.',
+                    'error' => 'Nije moguće otkazati ispunjenje.',
+                ],
+            ],
+            'change_location' => [
+                'label' => 'Promijeni lokaciju',
+                'modal_heading' => 'Promijeni lokaciju ispunjenja',
+                'field' => 'Lokacija',
+                'notification' => [
+                    'success' => 'Lokacija ispunjenja ažurirana.',
+                    'error' => 'Nije moguće promijeniti lokaciju ispunjenja.',
+                ],
+            ],
+            'return' => [
+                'label' => 'Povrat',
+                'notification' => [
+                    'success' => 'Ispunjenje vraćeno.',
+                    'error' => 'Nije moguće vratiti ispunjenje.',
+                ],
+            ],
+            'update_status' => [
+                'label' => 'Ažuriraj status',
+            ],
+            'transition' => [
+                'modal_heading' => 'Označiti ispunjenje kao :status?',
+                'notification' => [
+                    'success' => 'Status ispunjenja ažuriran.',
+                    'error' => 'Nije moguće ažurirati status ispunjenja.',
+                ],
+            ],
+            'undo_return' => [
+                'label' => 'Poništi povrat',
+                'notification' => [
+                    'success' => 'Povrat poništen.',
+                    'error' => 'Nije moguće poništiti povrat.',
+                ],
+            ],
+            'hold' => [
+                'label' => 'Stavi na čekanje',
+                'modal_heading' => 'Stavi ispunjenje na čekanje',
+                'reason' => 'Razlog',
+                'note' => 'Napomena',
+                'notification' => [
+                    'success' => 'Ispunjenje stavljeno na čekanje.',
+                    'error' => 'Nije moguće staviti ispunjenje na čekanje.',
+                ],
+            ],
+            'release' => [
+                'label' => 'Oslobodi s čekanja',
+                'notification' => [
+                    'success' => 'Ispunjenje oslobođeno.',
+                    'error' => 'Nije moguće osloboditi ispunjenje.',
+                ],
+            ],
+            'split' => [
+                'label' => 'Podijeli',
+                'confirm' => 'Podijeli ispunjenje',
+                'cancel' => 'Odustani',
+                'empty' => 'Odaberite količinu za izdvajanje.',
+                'modal_heading' => 'Podijeli ispunjenje',
+                'notification' => [
+                    'success' => 'Ispunjenje podijeljeno.',
+                    'error' => 'Nije moguće podijeliti ispunjenje.',
+                ],
+            ],
+            'merge' => [
+                'label' => 'Spoji',
+                'confirm' => 'Spoji ispunjenje',
+                'cancel' => 'Odustani',
+                'modal_heading' => 'Spoji ispunjenje',
+                'description' => 'Odaberite stavke koje želite spojiti.',
+                'target' => 'Spoji sa',
+                'empty' => 'Odaberite stavke i odredište za spajanje.',
+                'notification' => [
+                    'success' => 'Ispunjenja spojena.',
+                    'error' => 'Nije moguće spojiti ispunjenja.',
+                ],
+            ],
+        ],
+        'fields' => [
+            'quantity' => 'Količina',
+            'tracking' => 'Praćenje',
+            'tracking_item' => 'Praćenje #:number',
+            'unit_price' => 'Jedinična cijena',
+            'sub_total' => 'Međuzbroj',
+            'discount_total' => 'Ukupan popust',
+            'total' => 'Ukupno',
+            'stock_level' => 'Trenutna razina zaliha: :count',
+            'of' => 'od :count',
+            'outstanding' => 'Preostalo: :count',
+            'tracking_number' => 'Broj za praćenje',
+            'tracking_url' => 'URL za praćenje',
+            'carrier' => 'Dostavljač',
+            'carrier_custom' => 'Prilagođeno / ostalo',
+            'tracking_url_help' => 'Potrebno samo za dostavljače bez automatske poveznice za praćenje.',
+            'shipping_method' => 'Način dostave',
+            'move_quantity' => 'Količina za premještanje',
+        ],
+    ],
+
+    'other_items' => [
+        'heading' => 'Ostale stavke',
+    ],
 ];

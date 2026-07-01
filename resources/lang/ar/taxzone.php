@@ -1,11 +1,8 @@
 <?php
 
 return [
-
     'label' => 'منطقة ضرائب',
-
     'plural_label' => 'مناطق الضرائب',
-
     'table' => [
         'name' => [
             'label' => 'الاسم',
@@ -20,7 +17,6 @@ return [
             'label' => 'افتراضي',
         ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'الاسم',
@@ -33,37 +29,24 @@ return [
                 'postcodes' => 'تحديد حسب الرموز البريدية',
             ],
         ],
-        'price_display' => [
-            'label' => 'عرض السعر',
-            'options' => [
-                'include_tax' => 'شامل الضريبة',
-                'exclude_tax' => 'بدون ضريبة',
-            ],
-        ],
         'active' => [
             'label' => 'نشط',
         ],
         'default' => [
             'label' => 'افتراضي',
         ],
-
         'zone_countries' => [
             'label' => 'الدول',
         ],
-
         'zone_country' => [
             'label' => 'الدولة',
         ],
-
         'zone_states' => [
             'label' => 'المحافظات',
         ],
-
         'zone_postcodes' => [
             'label' => 'الرموز البريدية',
             'helper' => 'أدرج كل رمز بريدي في سطر جديد. يدعم الرموز العامة مثل NW*',
         ],
-
     ],
-
 ];

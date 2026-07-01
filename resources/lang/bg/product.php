@@ -1,21 +1,15 @@
 <?php
 
 return [
-
     'label' => 'Продукт',
-
     'plural_label' => 'Продукти',
-
     'tabs' => [
         'all' => 'Всички',
         'published' => 'Публикувани',
         'draft' => 'Чернови',
+        'archived' => 'Archived',
     ],
-
     'status' => [
-        'unpublished' => [
-            'content' => 'В чернова, този продукт е недостъпен във всички канали и клиентски групи.',
-        ],
         'availability' => [
             'customer_groups' => 'Този продукт не е наличен за всички клиентски групи.',
             'channels' => 'Този продукт не е наличен във всички канали.',
@@ -23,7 +17,6 @@ return [
             'no_default_customer_group' => 'Не е зададена клиентска група по подразбиране, така че видимостта за гостите не може да се контролира тук. Маркирайте една клиентска група като по подразбиране, за да управлявате достъпа на гостите.',
         ],
     ],
-
     'table' => [
         'status' => [
             'label' => 'Статус',
@@ -49,14 +42,18 @@ return [
             'label' => 'Тип продукт',
         ],
     ],
-
     'actions' => [
         'edit_status' => [
             'label' => 'Актуализиране на статус',
+            'label_with_state' => 'Status: :state',
             'heading' => 'Актуализиране на статус',
         ],
+        'delete' => [
+            'confirm' => 'This permanently deletes the product and cannot be undone. If you want to hide it from the storefront without losing it, archive it instead.',
+            'blocked' => 'This product has appeared on past orders and cannot be deleted — archive it instead so historical orders keep their reference.',
+            'disabled_tooltip' => 'Products with order history can\'t be deleted. Archive instead.',
+        ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'Име',
@@ -81,6 +78,10 @@ return [
                     'label' => 'Чернова',
                     'description' => 'Този продукт ще бъде скрит във всички канали и клиентски групи.',
                 ],
+                'archived' => [
+                    'label' => 'Archived',
+                    'description' => 'This product is retired but still referenced by historical orders. Move back to Draft to revive it.',
+                ],
             ],
         ],
         'tags' => [
@@ -92,7 +93,6 @@ return [
             'select_collection' => 'Изберете колекция',
         ],
     ],
-
     'pages' => [
         'availability' => [
             'label' => 'Наличност',
@@ -131,5 +131,4 @@ return [
             'label' => 'Асоциирани продукти',
         ],
     ],
-
 ];

@@ -2,25 +2,23 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Component;
+use Filament\Schemas\Schema;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Lunar\Admin\Filament\Resources\TagResource\Pages\CreateTag;
 use Lunar\Admin\Filament\Resources\TagResource\Pages\EditTag;
 use Lunar\Admin\Filament\Resources\TagResource\Pages\ListTags;
 use Lunar\Admin\Support\Resources\BaseResource;
-use Lunar\Models\Contracts\Tag as TagContract;
+use Lunar\Core\Models\Tag;
+use Lunar\Filament\Schemas\Tag\TagForm;
+use Lunar\Filament\Support\Resolver;
+use Lunar\Filament\Tables\Tag\TagTable;
 
 class TagResource extends BaseResource
 {
     protected static ?string $permission = 'settings';
 
-    protected static ?string $model = TagContract::class;
+    protected static ?string $model = Tag::class;
 
     protected static ?int $navigationSort = 1;
 
@@ -44,55 +42,17 @@ class TagResource extends BaseResource
         return __('lunarpanel::global.sections.settings');
     }
 
-    protected static function getMainFormComponents(): array
+    public static function form(Schema $schema): Schema
     {
-        return [
-            static::getValueFormComponent(),
-        ];
+        return Resolver::form(TagForm::class, $schema);
     }
 
-    protected static function getValueFormComponent(): Component
+    public static function table(Table $table): Table
     {
-        return TextInput::make('value')
-            ->label(__('lunarpanel::tag.form.value.label'))
-            ->required()
-            ->maxLength(255)
-            ->autofocus();
+        return Resolver::table(TagTable::class, $table);
     }
 
-    public static function getDefaultTable(Table $table): Table
-    {
-        return $table
-            ->columns(static::getTableColumns())
-            ->filters([
-                //
-            ])
-            ->recordActions([
-                EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
-    }
-
-    protected static function getTableColumns(): array
-    {
-        return [
-            TextColumn::make('value')
-                ->label(__('lunarpanel::tag.table.value.label')),
-        ];
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
-    public static function getDefaultPages(): array
+    protected static function getDefaultPages(): array
     {
         return [
             'index' => ListTags::route('/'),

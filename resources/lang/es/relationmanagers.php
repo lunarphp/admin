@@ -92,8 +92,14 @@ return [
         'title' => 'Medios',
         'title_plural' => 'Medios',
         'actions' => [
+            'attach' => [
+                'label' => 'Attach Media',
+            ],
             'create' => [
                 'label' => 'Crear Medio',
+            ],
+            'detach' => [
+                'label' => 'Detach',
             ],
             'view' => [
                 'label' => 'Ver',
@@ -124,6 +130,8 @@ return [
                 'label' => 'Primario',
             ],
         ],
+        'all_media_attached' => 'There are no product images available to attach',
+        'variant_description' => 'Attach product images to this variant',
     ],
     'urls' => [
         'title' => 'URL',
@@ -231,7 +239,7 @@ return [
                 'label' => 'Moneda',
                 'helper_text' => 'Selecciona la moneda para este precio.',
             ],
-            'compare_price' => [
+            'list_price' => [
                 'label' => 'Precio Comparativo',
                 'helper_text' => 'El precio original o RRP, para comparación con su precio de compra.',
             ],
@@ -241,8 +249,9 @@ return [
                     'price' => [
                         'label' => 'Precio',
                         'helper_text' => 'El precio de compra, antes de descuentos.',
+                        'sync_price' => 'Price is synced with the default currency.',
                     ],
-                    'compare_price' => [
+                    'list_price' => [
                         'label' => 'Precio Comparativo',
                         'helper_text' => 'El precio original o RRP, para comparación con su precio de compra.',
                     ],

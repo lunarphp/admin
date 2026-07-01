@@ -6,22 +6,31 @@ return [
             'updated' => 'Đã cập nhật thẻ',
         ],
     ],
-
     'activity-log' => [
         'input' => [
             'placeholder' => 'Thêm bình luận',
         ],
-
         'action' => [
             'add-comment' => 'Thêm bình luận',
         ],
-
         'system' => 'Hệ thống',
-
         'partials' => [
             'orders' => [
                 'order_created' => 'Đã tạo đơn hàng',
                 'status_change' => 'Đã cập nhật trạng thái',
+                'order_closed' => 'Đã đóng đơn hàng',
+                'order_reopened' => 'Đã mở lại đơn hàng',
+                'order_cancelled' => 'Đã hủy đơn hàng (:reason)',
+                'order_cancelled_no_reason' => 'Đã hủy đơn hàng',
+
+                'email_notification' => 'Sent :notification to :email',
+
+                'email_notification_fallback' => 'a notification',
+                'fulfilment_state' => 'Đơn giao hàng #:id được đánh dấu là :state',
+                'fulfilment_held' => 'Đơn giao hàng #:id đã được tạm giữ (:reason)',
+                'fulfilment_held_no_reason' => 'Đơn giao hàng #:id đã được tạm giữ',
+                'fulfilment_released' => 'Đơn giao hàng #:id đã được gỡ tạm giữ',
+
                 'capture' => 'Thanh toán :amount bằng thẻ có số cuối :last_four',
                 'authorized' => 'Đã xác thực :amount bằng thẻ có số cuối :last_four',
                 'refund' => 'Hoàn tiền :amount cho thẻ có số cuối :last_four',
@@ -29,33 +38,27 @@ return [
                 'billingAddress' => 'Địa chỉ thanh toán',
                 'shippingAddress' => 'Địa chỉ giao hàng',
             ],
-
             'update' => [
                 'updated' => 'Đã cập nhật :model',
             ],
-
             'create' => [
                 'created' => 'Đã tạo :model',
             ],
-
             'tags' => [
                 'updated' => 'Đã cập nhật thẻ',
                 'added' => 'Đã thêm',
                 'removed' => 'Đã xóa',
             ],
         ],
-
         'notification' => [
             'comment_added' => 'Đã thêm bình luận',
         ],
     ],
-
     'forms' => [
         'youtube' => [
             'helperText' => 'Nhập ID của video YouTube. Ví dụ: dQw4w9WgXcQ',
         ],
     ],
-
     'collection-tree-view' => [
         'actions' => [
             'move' => [
@@ -78,7 +81,6 @@ return [
             ],
         ],
     ],
-
     'product-options-list' => [
         'add-option' => [
             'label' => 'Thêm tùy chọn',

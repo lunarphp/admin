@@ -10,11 +10,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Filament\Resources\ProductResource;
 use Lunar\Admin\Support\Pages\BaseListRecords;
-use Lunar\Facades\DB;
-use Lunar\Models\Attribute;
-use Lunar\Models\Currency;
-use Lunar\Models\Product;
-use Lunar\Models\TaxClass;
+use Lunar\Core\Facades\DB;
+use Lunar\Core\Models\Currency;
+use Lunar\Core\Models\Product;
+use Lunar\Core\Models\TaxClass;
+use Lunar\Filament\Schemas\Product\ProductForm;
 
 class ListProducts extends BaseListRecords
 {
@@ -37,12 +37,12 @@ class ListProducts extends BaseListRecords
     {
         return [
             Grid::make(2)->schema([
-                ProductResource::getBaseNameFormComponent(),
-                ProductResource::getProductTypeFormComponent()->required(),
+                ProductForm::getBaseNameComponent(),
+                ProductForm::getProductTypeComponent()->required(),
             ]),
             Grid::make(2)->schema([
-                ProductResource::getSkuFormComponent(),
-                ProductResource::getBasePriceFormComponent(),
+                ProductForm::getSkuComponent(),
+                ProductForm::getBasePriceComponent(),
             ]),
         ];
     }
@@ -51,20 +51,11 @@ class ListProducts extends BaseListRecords
     {
         $currency = Currency::getDefault();
 
-        $nameAttribute = Attribute::whereAttributeType(
-            $model::morphName()
-        )
-            ->whereHandle('name')
-            ->first()
-            ->type;
-
         DB::beginTransaction();
         $product = $model::create([
             'status' => 'draft',
             'product_type_id' => $data['product_type_id'],
-            'attribute_data' => [
-                'name' => new $nameAttribute($data['name']),
-            ],
+            'name' => $data['name'],
         ]);
         $variant = $product->variants()->create([
             'tax_class_id' => TaxClass::getDefault()->id,
@@ -89,6 +80,8 @@ class ListProducts extends BaseListRecords
             'draft' => Tab::make(__('lunarpanel::product.tabs.draft'))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'draft'))
                 ->badge(Product::query()->where('status', 'draft')->count()),
+            'archived' => Tab::make(__('lunarpanel::product.tabs.archived'))
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'archived')),
         ];
     }
 

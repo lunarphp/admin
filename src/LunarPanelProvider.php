@@ -3,34 +3,17 @@
 namespace Lunar\Admin;
 
 use Filament\Support\Events\FilamentUpgraded;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Database\Events\MigrationsEnded;
-use Illuminate\Database\Events\MigrationsStarted;
-use Illuminate\Database\Events\NoPendingMigrations;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Livewire\Livewire;
-use Lunar\Admin\Auth\Manifest;
 use Lunar\Admin\Console\Commands\MakeLunarAdminCommand;
-use Lunar\Admin\Database\State\EnsureBaseRolesAndPermissions;
-use Lunar\Admin\Events\ChildCollectionCreated;
-use Lunar\Admin\Events\CollectionProductDetached;
-use Lunar\Admin\Events\CustomerAddressEdited;
+use Lunar\Admin\Console\Commands\PublishAdminResourcesCommand;
 use Lunar\Admin\Events\CustomerUserEdited;
-use Lunar\Admin\Events\ModelChannelsUpdated;
-use Lunar\Admin\Events\ModelPricesUpdated;
-use Lunar\Admin\Events\ModelUrlsUpdated;
-use Lunar\Admin\Events\ProductAssociationsUpdated;
-use Lunar\Admin\Events\ProductCollectionsUpdated;
-use Lunar\Admin\Events\ProductCustomerGroupsUpdated;
-use Lunar\Admin\Events\ProductPricingUpdated;
-use Lunar\Admin\Events\ProductVariantOptionsUpdated;
+use Lunar\Admin\Filament\Resources\CollectionResource;
+use Lunar\Admin\Filament\Resources\OrderResource\Pages\ManageOrder;
+use Lunar\Admin\Filament\Resources\ProductVariantResource;
 use Lunar\Admin\Listeners\FilamentUpgradedListener;
-use Lunar\Admin\Models\Staff;
 use Lunar\Admin\Support\ActivityLog\Manifest as ActivityLogManifest;
-use Lunar\Admin\Support\Forms\AttributeData;
-use Lunar\Admin\Support\Synthesizers\PriceSynth;
 
 class LunarPanelProvider extends ServiceProvider
 {
@@ -46,25 +29,16 @@ class LunarPanelProvider extends ServiceProvider
             return new LunarPanelManager;
         });
 
-        $this->app->scoped('lunar-access-control', function (): Manifest {
-            return new Manifest;
-        });
-
         $this->app->scoped('lunar-activity-log', function (): ActivityLogManifest {
             return new ActivityLogManifest;
         });
 
-        $this->app->scoped('lunar-attribute-data', function (): AttributeData {
-            return new AttributeData;
-        });
+        // 'lunar-access-control' binding now lives in Lunar\Core\LunarServiceProvider.
+        // 'lunar-attribute-data' binding lives in LunarFilamentServiceProvider.
     }
 
     public function boot(): void
     {
-        if (! config('lunar.database.disable_migrations', false)) {
-            $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        }
-
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'lunarpanel');
 
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'lunarpanel');
@@ -91,53 +65,50 @@ class LunarPanelProvider extends ServiceProvider
 
             $this->commands([
                 MakeLunarAdminCommand::class,
+                PublishAdminResourcesCommand::class,
             ]);
         }
 
-        Relation::morphMap([
-            'staff' => Staff::class,
-        ]);
-
-        Event::listen([
-            ChildCollectionCreated::class,
-            CollectionProductDetached::class,
-            CustomerAddressEdited::class,
+        // Catalog reindexing rides the core cache-invalidation events
+        // (Lunar\Core\Listeners\ReindexOnCacheInvalidation). A linked user's
+        // email is part of the customer search document, so a user edit still
+        // reindexes the customer here.
+        Event::listen(
             CustomerUserEdited::class,
-            ProductAssociationsUpdated::class,
-            ProductCollectionsUpdated::class,
-            ProductPricingUpdated::class,
-            ProductCustomerGroupsUpdated::class,
-            ProductVariantOptionsUpdated::class,
-            ModelChannelsUpdated::class,
-            ModelPricesUpdated::class,
-            ModelUrlsUpdated::class,
-        ], fn ($event) => sync_with_search($event->model));
+            fn ($event) => sync_with_search($event->model),
+        );
 
         $this->publishes([
             __DIR__.'/../public' => public_path('vendor/lunarpanel'),
         ], 'public');
 
-        $this->registerAuthGuard();
         $this->registerPermissionManifest();
-        $this->registerStateListeners();
         $this->registerLunarSynthesizer();
+        $this->registerBridgeRecordUrls();
         // $this->registerUpgradedListener();
     }
 
     /**
-     * Register our auth guard.
+     * Point the bridge's record-URL resolvers at the admin shell's pages.
+     *
+     * Bridge tables/widgets call `RecordUrls::for(...)` to link out to a
+     * record's management page. Without this binding the link is omitted —
+     * which is the correct behaviour for downstream panels that don't ship
+     * the admin shell.
      */
-    protected function registerAuthGuard(): void
+    protected function registerBridgeRecordUrls(): void
     {
-        $this->app['config']->set('auth.providers.staff', [
-            'driver' => 'eloquent',
-            'model' => Staff::class,
-        ]);
+        $this->app['config']->set('lunar-filament.record_urls.order',
+            fn ($record, array $context = []) => ManageOrder::getUrl([...$context, 'record' => $record]),
+        );
 
-        $this->app['config']->set('auth.guards.staff', [
-            'driver' => 'session',
-            'provider' => 'staff',
-        ]);
+        $this->app['config']->set('lunar-filament.record_urls.product_variant',
+            fn ($record, array $context = []) => ProductVariantResource::getUrl('edit', [...$context, 'record' => $record]),
+        );
+
+        $this->app['config']->set('lunar-filament.record_urls.collection_edit',
+            fn ($record, array $context = []) => CollectionResource::getUrl('edit', [...$context, 'record' => $record]),
+        );
     }
 
     /**
@@ -159,30 +130,10 @@ class LunarPanelProvider extends ServiceProvider
         Event::listen(FilamentUpgraded::class, FilamentUpgradedListener::class);
     }
 
-    protected function registerStateListeners()
-    {
-        $states = [
-            EnsureBaseRolesAndPermissions::class,
-        ];
-
-        foreach ($states as $state) {
-            $class = new $state;
-
-            Event::listen(
-                [MigrationsStarted::class],
-                [$class, 'prepare']
-            );
-
-            Event::listen(
-                [MigrationsEnded::class, NoPendingMigrations::class],
-                [$class, 'run']
-            );
-        }
-    }
-
     protected function registerLunarSynthesizer(): void
     {
-        Support\Facades\AttributeData::synthesizeLivewireProperties();
-        Livewire::propertySynthesizer(PriceSynth::class);
+        // The bridge (lunarphp/filament) now owns synthesizer registration via
+        // LunarFilamentServiceProvider::registerSynthesizers(). Kept as a no-op
+        // for v2 in case downstream code overrides this method; removed in v3.
     }
 }

@@ -1,11 +1,8 @@
 <?php
 
 return [
-
     'label' => 'Canal',
-
     'plural_label' => 'Canales',
-
     'table' => [
         'name' => [
             'label' => 'Nombre',
@@ -20,7 +17,6 @@ return [
             'label' => 'Predeterminado',
         ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'Nombre',
@@ -33,6 +29,13 @@ return [
         ],
         'default' => [
             'label' => 'Predeterminado',
+        ],
+    ],
+    'actions' => [
+        'delete' => [
+            'confirm' => 'This permanently deletes the channel and cannot be undone. If you want to stop using it without losing it, mark it Inactive instead.',
+            'blocked' => 'This channel has orders associated with it and cannot be deleted — mark it Inactive instead so historical orders keep their context.',
+            'disabled_tooltip' => 'Channels with order history can\'t be deleted. Mark Inactive instead.',
         ],
     ],
 

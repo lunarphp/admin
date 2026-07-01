@@ -11,9 +11,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
-use Lunar\Admin\Filament\Resources\ProductVariantResource;
-use Lunar\Models\Currency;
-use Lunar\Models\Price;
+use Lunar\Core\Facades\PriceCalculator;
+use Lunar\Core\Models\Currency;
+use Lunar\Core\Models\Price;
+use Lunar\Filament\Schemas\ProductVariant\ProductVariantForm;
 
 trait ManagesProductPricing
 {
@@ -51,7 +52,7 @@ trait ManagesProductPricing
 
         $variant = $this->getOwnerRecord();
 
-        // Merge form-submitted values (value, compare_price) back into
+        // Merge form-submitted values (value, list_price) back into
         // the full basePrices property which contains metadata like
         // id, currency_id, factor, etc. that aren't form fields.
         $formPrices = $data['basePrices'] ?? [];
@@ -65,24 +66,32 @@ trait ManagesProductPricing
         unset($data['basePrices']);
         $variant->update($data);
 
-        $prices->filter(
-            fn ($price) => ! ($price['id'] ?? null) && isset($price['value']) && isset($price['currency_id'])
-        )->each(fn ($price) => $variant->prices()->create([
-            'currency_id' => $price['currency_id'],
-            'price' => (int) round((float) ($price['value'] * ($price['factor'] ?? 1))),
-            'compare_price' => (int) round((float) (($price['compare_price'] ?? 0) * ($price['factor'] ?? 1))),
-            'min_quantity' => 1,
-            'customer_group_id' => null,
-        ])
-        );
+        $currencies = Currency::whereIn('id', $prices->pluck('currency_id')->filter()->unique())->get()->keyBy('id');
 
         $prices->filter(
-            fn ($price) => ($price['id'] ?? null) && isset($price['value']) && ($price['value'] != $price['original_value'] || $price['compare_price'] != $price['original_compare_price'])
-        )->each(fn ($price) => Price::find($price['id'])->update([
-            'price' => (int) round((float) ($price['value'] * $price['factor'])),
-            'compare_price' => (int) round((float) ($price['compare_price'] * $price['factor'])),
-        ])
-        );
+            fn ($price) => ! ($price['id'] ?? null) && isset($price['value']) && isset($price['currency_id'])
+        )->each(function ($price) use ($variant, $currencies) {
+            $currency = $currencies->get($price['currency_id']);
+
+            $variant->prices()->create([
+                'currency_id' => $price['currency_id'],
+                'price' => PriceCalculator::toMinor((float) $price['value'], $currency),
+                'list_price' => PriceCalculator::toMinor((float) ($price['list_price'] ?? 0), $currency),
+                'min_quantity' => 1,
+                'customer_group_id' => null,
+            ]);
+        });
+
+        $prices->filter(
+            fn ($price) => ($price['id'] ?? null) && isset($price['value']) && ($price['value'] != $price['original_value'] || $price['list_price'] != $price['original_list_price'])
+        )->each(function ($price) use ($currencies) {
+            $currency = $currencies->get($price['currency_id']);
+
+            Price::find($price['id'])->update([
+                'price' => PriceCalculator::toMinor((float) $price['value'], $currency),
+                'list_price' => PriceCalculator::toMinor((float) $price['list_price'], $currency),
+            ]);
+        });
 
         $this->basePrices = $this->getBasePrices();
 
@@ -132,15 +141,15 @@ trait ManagesProductPricing
                             })
                             ->disabled(fn () => $price['sync_prices'] ?? false)
                             ->live(),
-                        TextInput::make('compare_price')
+                        TextInput::make('list_price')
                             ->label('')
-                            ->statePath($index.'.compare_price')
+                            ->statePath($index.'.list_price')
                             ->numeric()
                             ->label(
-                                __('lunarpanel::relationmanagers.pricing.form.basePrices.form.compare_price.label')
+                                __('lunarpanel::relationmanagers.pricing.form.basePrices.form.list_price.label')
                             )
                             ->helperText(
-                                __('lunarpanel::relationmanagers.pricing.form.basePrices.form.compare_price.helper_text')
+                                __('lunarpanel::relationmanagers.pricing.form.basePrices.form.list_price.helper_text')
                             )
                             ->hintColor('warning')
                             ->extraInputAttributes([
@@ -179,8 +188,8 @@ trait ManagesProductPricing
         $schema->components([
             Section::make()->schema([
                 Group::make([
-                    ProductVariantResource::getTaxClassIdFormComponent(),
-                    ProductVariantResource::getTaxRefFormComponent(),
+                    ProductVariantForm::getTaxClassIdComponent(),
+                    ProductVariantForm::getTaxRefComponent(),
                 ])->columns(2),
             ]),
             $this->getBasePriceFormSection(),
@@ -213,10 +222,10 @@ trait ManagesProductPricing
                 $price->currency->code,
                 [
                     'id' => $price->id,
-                    'original_value' => $price->price->decimal(rounding: false),
-                    'value' => $price->price->decimal(rounding: false),
-                    'original_compare_price' => $price->compare_price->decimal(rounding: false),
-                    'compare_price' => $price->compare_price->decimal(rounding: false),
+                    'original_value' => $price->decimal('price', rounding: false),
+                    'value' => $price->decimal('price', rounding: false),
+                    'original_list_price' => $price->decimal('list_price', rounding: false),
+                    'list_price' => $price->decimal('list_price', rounding: false),
                     'factor' => $price->currency->factor,
                     'label' => $price->currency->name,
                     'currency_code' => $price->currency->code,
@@ -238,7 +247,7 @@ trait ManagesProductPricing
                     'id' => null,
                     'original_value' => $value,
                     'value' => $value,
-                    'compare_price' => round(($defaultCurrencyPrice['compare_price'] ?? 0) * $currency->exchange_rate, $currency->decimal_places),
+                    'list_price' => round(($defaultCurrencyPrice['list_price'] ?? 0) * $currency->exchange_rate, $currency->decimal_places),
                     'factor' => $currency->factor,
                     'label' => $currency->name,
                     'currency_code' => $currency->code,

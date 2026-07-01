@@ -92,8 +92,14 @@ return [
         'title' => 'Média',
         'title_plural' => 'Médias',
         'actions' => [
+            'attach' => [
+                'label' => 'Attach Media',
+            ],
             'create' => [
                 'label' => 'Créer un média',
+            ],
+            'detach' => [
+                'label' => 'Detach',
             ],
             'view' => [
                 'label' => 'Voir',
@@ -124,6 +130,8 @@ return [
                 'label' => 'Principal',
             ],
         ],
+        'all_media_attached' => 'There are no product images available to attach',
+        'variant_description' => 'Attach product images to this variant',
     ],
     'urls' => [
         'title' => 'URL',
@@ -231,7 +239,7 @@ return [
                 'label' => 'Devise',
                 'helper_text' => 'Sélectionnez la devise pour ce prix.',
             ],
-            'compare_price' => [
+            'list_price' => [
                 'label' => 'Prix de comparaison',
                 'helper_text' => 'Le prix d\'origine ou PDSF, pour la comparaison avec son prix d\'achat.',
             ],
@@ -241,8 +249,9 @@ return [
                     'price' => [
                         'label' => 'Prix',
                         'helper_text' => 'Le prix d\'achat, avant réductions.',
+                        'sync_price' => 'Price is synced with the default currency.',
                     ],
-                    'compare_price' => [
+                    'list_price' => [
                         'label' => 'Prix de comparaison',
                         'helper_text' => 'Le prix d\'origine ou PDSF, pour la comparaison avec son prix d\'achat.',
                     ],

@@ -2,26 +2,23 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Awcodes\BadgeableColumn\Components\Badge;
-use Awcodes\BadgeableColumn\Components\BadgeableColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Component;
+use Filament\Schemas\Schema;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Filament\Resources\LanguageResource\Pages\CreateLanguage;
 use Lunar\Admin\Filament\Resources\LanguageResource\Pages\EditLanguage;
 use Lunar\Admin\Filament\Resources\LanguageResource\Pages\ListLanguages;
 use Lunar\Admin\Support\Resources\BaseResource;
-use Lunar\Models\Contracts\Language as LanguageContract;
+use Lunar\Core\Models\Language;
+use Lunar\Filament\Schemas\Language\LanguageForm;
+use Lunar\Filament\Support\Resolver;
+use Lunar\Filament\Tables\Language\LanguageTable;
 
 class LanguageResource extends BaseResource
 {
     protected static ?string $permission = 'settings:core';
 
-    protected static ?string $model = LanguageContract::class;
+    protected static ?string $model = Language::class;
 
     protected static ?int $navigationSort = 1;
 
@@ -45,64 +42,17 @@ class LanguageResource extends BaseResource
         return __('lunarpanel::global.sections.settings');
     }
 
-    protected static function getMainFormComponents(): array
+    public static function form(Schema $schema): Schema
     {
-        return [
-            static::getNameFormComponent(),
-            static::getCodeFormComponent(),
-            static::getDefaultFormComponent(),
-        ];
+        return Resolver::form(LanguageForm::class, $schema);
     }
 
-    protected static function getNameFormComponent(): Component
+    public static function table(Table $table): Table
     {
-        return TextInput::make('name')
-            ->label(__('lunarpanel::language.form.name.label'))
-            ->required()
-            ->maxLength(255)
-            ->autofocus();
+        return Resolver::table(LanguageTable::class, $table);
     }
 
-    protected static function getCodeFormComponent(): Component
-    {
-        return TextInput::make('code')
-            ->label(__('lunarpanel::language.form.code.label'))
-            ->required()
-            ->minLength(2)
-            ->maxLength(5);
-    }
-
-    protected static function getDefaultFormComponent(): Component
-    {
-        return Toggle::make('default')
-            ->label(__('lunarpanel::language.form.default.label'));
-    }
-
-    protected static function getDefaultTable(Table $table): Table
-    {
-        return $table->columns([
-            BadgeableColumn::make('name')
-                ->separator('')
-                ->suffixBadges([
-                    Badge::make('default')
-                        ->label(__('lunarpanel::language.table.default.label'))
-                        ->color('gray')
-                        ->visible(fn (Model $record) => $record->default),
-                ])
-                ->label(__('lunarpanel::language.table.name.label')),
-            TextColumn::make('code')
-                ->label(__('lunarpanel::language.table.code.label')),
-        ]);
-    }
-
-    public static function getDefaultRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
-    public static function getDefaultPages(): array
+    protected static function getDefaultPages(): array
     {
         return [
             'index' => ListLanguages::route('/'),

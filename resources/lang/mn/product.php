@@ -1,21 +1,15 @@
 <?php
 
 return [
-
     'label' => 'Бүтээгдэхүүн',
-
     'plural_label' => 'Бүтээгдэхүүнүүд',
-
     'tabs' => [
         'all' => 'Бүгд',
         'published' => 'Нийтлэгдсэн',
         'draft' => 'Ноорог',
+        'archived' => 'Archived',
     ],
-
     'status' => [
-        'unpublished' => [
-            'content' => 'Одоогоор ноорог статустай, энэ бүтээгдэхүүн бүх сувгууд болон харилцагчийн бүлгүүдэд боломжгүй байна.',
-        ],
         'availability' => [
             'customer_groups' => 'Энэ бүтээгдэхүүн одоогоор бүх харилцагчийн бүлгүүдэд боломжгүй байна.',
             'channels' => 'Энэ бүтээгдэхүүн одоогоор бүх сувгууд боломжгүй байна.',
@@ -23,7 +17,6 @@ return [
             'no_default_customer_group' => 'Үндсэн харилцагчийн бүлэг тохируулагдаагүй тул зочдын харагдах байдлыг эндээс удирдах боломжгүй. Зочдын хандалтыг хянахын тулд нэг харилцагчийн бүлгийг үндсэн гэж тэмдэглэнэ үү.',
         ],
     ],
-
     'table' => [
         'status' => [
             'label' => 'Статус',
@@ -49,14 +42,18 @@ return [
             'label' => 'Бүтээгдэхүүний төрөл',
         ],
     ],
-
     'actions' => [
         'edit_status' => [
             'label' => 'Статус шинэчлэх',
+            'label_with_state' => 'Status: :state',
             'heading' => 'Статус шинэчлэх',
         ],
+        'delete' => [
+            'confirm' => 'This permanently deletes the product and cannot be undone. If you want to hide it from the storefront without losing it, archive it instead.',
+            'blocked' => 'This product has appeared on past orders and cannot be deleted — archive it instead so historical orders keep their reference.',
+            'disabled_tooltip' => 'Products with order history can\'t be deleted. Archive instead.',
+        ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'Нэр',
@@ -81,6 +78,10 @@ return [
                     'label' => 'Ноорог',
                     'description' => 'Энэ бүтээгдэхүүн бүх сувгууд болон харилцагчийн бүлгүүдэд нуугдсан байна',
                 ],
+                'archived' => [
+                    'label' => 'Archived',
+                    'description' => 'This product is retired but still referenced by historical orders. Move back to Draft to revive it.',
+                ],
             ],
         ],
         'tags' => [
@@ -92,7 +93,6 @@ return [
             'select_collection' => 'Коллекц сонгох',
         ],
     ],
-
     'pages' => [
         'availability' => [
             'label' => 'Бэлэн',
@@ -131,5 +131,4 @@ return [
             'label' => 'Бүтээгдэхүүний холбоосууд',
         ],
     ],
-
 ];

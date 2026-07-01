@@ -14,13 +14,14 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Filament\Resources\ProductResource;
-use Lunar\Admin\Filament\Resources\ProductResource\RelationManagers\CustomerGroupPricingRelationManager;
-use Lunar\Admin\Filament\Resources\ProductVariantResource;
 use Lunar\Admin\Support\Concerns\Products\ManagesProductPricing;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
 use Lunar\Admin\Support\RelationManagers\PriceRelationManager;
-use Lunar\Models\Currency;
-use Lunar\Models\Price;
+use Lunar\Core\Facades\PriceCalculator;
+use Lunar\Core\Models\Currency;
+use Lunar\Core\Models\Price;
+use Lunar\Filament\RelationManagers\Product\CustomerGroupPricingRelationManager;
+use Lunar\Filament\Schemas\ProductVariant\ProductVariantForm;
 
 class ManageProductPricing extends BaseEditRecord
 {
@@ -53,8 +54,8 @@ class ManageProductPricing extends BaseEditRecord
             Section::make()
                 ->schema([
                     Group::make([
-                        ProductVariantResource::getTaxClassIdFormComponent(),
-                        ProductVariantResource::getTaxRefFormComponent(),
+                        ProductVariantForm::getTaxClassIdComponent(),
+                        ProductVariantForm::getTaxRefComponent(),
                     ])->columns(2),
                 ]),
             $this->getBasePriceFormSection(),
@@ -94,7 +95,7 @@ class ManageProductPricing extends BaseEditRecord
                     ->label(
                         __('lunarpanel::relationmanagers.pricing.table.price.label')
                     )->formatStateUsing(
-                        fn ($state) => $state->formatted,
+                        fn ($state, $record) => $record->format('price'),
                     ),
                 TextColumn::make('currency.code')->label(
                     __('lunarpanel::relationmanagers.pricing.table.currency.label')
@@ -121,7 +122,7 @@ class ManageProductPricing extends BaseEditRecord
                 CreateAction::make()->mutateDataUsing(function (array $data) {
                     $currencyModel = Currency::find($data['currency_id']);
 
-                    $data['price'] = (int) ($data['price'] * $currencyModel->factor);
+                    $data['price'] = PriceCalculator::toMinor((float) $data['price'], $currencyModel);
 
                     return $data;
                 }),
@@ -130,7 +131,7 @@ class ManageProductPricing extends BaseEditRecord
                 EditAction::make()->mutateDataUsing(function (array $data): array {
                     $currencyModel = Currency::find($data['currency_id']);
 
-                    $data['price'] = (int) ($data['price'] * $currencyModel->factor);
+                    $data['price'] = PriceCalculator::toMinor((float) $data['price'], $currencyModel);
 
                     return $data;
                 }),

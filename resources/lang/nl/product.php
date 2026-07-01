@@ -1,19 +1,15 @@
 <?php
 
 return [
-
     'label' => 'Product',
-
     'plural_label' => 'Producten',
-
     'tabs' => [
         'all' => 'Allemaal',
+        'published' => 'Published',
+        'draft' => 'Draft',
+        'archived' => 'Archived',
     ],
-
     'status' => [
-        'unpublished' => [
-            'content' => 'Momenteel in conceptstatus, dit product is niet beschikbaar op alle kanalen en klantgroepen.',
-        ],
         'availability' => [
             'customer_groups' => 'Dit product is momenteel niet beschikbaar voor alle klantgroepen.',
             'channels' => 'Dit product is momenteel niet beschikbaar voor alle kanalen.',
@@ -21,7 +17,6 @@ return [
             'no_default_customer_group' => 'Er is geen standaard klantgroep ingesteld, dus de zichtbaarheid voor gasten kan hier niet worden geregeld. Markeer een klantgroep als standaard om de toegang voor gasten te beheren.',
         ],
     ],
-
     'table' => [
         'status' => [
             'label' => 'Status',
@@ -47,14 +42,18 @@ return [
             'label' => 'Producttype',
         ],
     ],
-
     'actions' => [
         'edit_status' => [
             'label' => 'Status Bijwerken',
+            'label_with_state' => 'Status: :state',
             'heading' => 'Status Bijwerken',
         ],
+        'delete' => [
+            'confirm' => 'This permanently deletes the product and cannot be undone. If you want to hide it from the storefront without losing it, archive it instead.',
+            'blocked' => 'This product has appeared on past orders and cannot be deleted — archive it instead so historical orders keep their reference.',
+            'disabled_tooltip' => 'Products with order history can\'t be deleted. Archive instead.',
+        ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'Naam',
@@ -79,19 +78,27 @@ return [
                     'label' => 'Concept',
                     'description' => 'Dit product zal verborgen zijn op alle kanalen en klantgroepen',
                 ],
+                'archived' => [
+                    'label' => 'Archived',
+                    'description' => 'This product is retired but still referenced by historical orders. Move back to Draft to revive it.',
+                ],
             ],
         ],
         'tags' => [
             'label' => 'Tags',
+            'helper_text' => 'Separate tags by pressing Enter, Tab or comma (,)',
         ],
         'collections' => [
             'label' => 'Collecties',
+            'select_collection' => 'Select a collection',
         ],
     ],
-
     'pages' => [
         'availability' => [
             'label' => 'Beschikbaarheid',
+        ],
+        'edit' => [
+            'title' => 'Basic Information',
         ],
         'identifiers' => [
             'label' => 'Product Identificatoren',
@@ -124,5 +131,4 @@ return [
             'label' => 'Productassociaties',
         ],
     ],
-
 ];

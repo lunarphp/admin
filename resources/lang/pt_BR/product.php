@@ -1,19 +1,15 @@
 <?php
 
 return [
-
     'label' => 'Produto',
-
     'plural_label' => 'Produtos',
-
     'tabs' => [
         'all' => 'Todos',
+        'published' => 'Published',
+        'draft' => 'Draft',
+        'archived' => 'Archived',
     ],
-
     'status' => [
-        'unpublished' => [
-            'content' => 'Atualmente em rascunho, este produto está indisponível em todos os canais e grupos de clientes.',
-        ],
         'availability' => [
             'customer_groups' => 'Este produto está indisponível para todos os grupos de clientes.',
             'channels' => 'Este produto está indisponível para todos os canais.',
@@ -21,7 +17,6 @@ return [
             'no_default_customer_group' => 'Nenhum grupo de clientes padrão foi definido, então a visibilidade para visitantes não pode ser controlada aqui. Marque um grupo de clientes como padrão para gerenciar o acesso de visitantes.',
         ],
     ],
-
     'table' => [
         'status' => [
             'label' => 'Status',
@@ -47,14 +42,18 @@ return [
             'label' => 'Tipo de produto',
         ],
     ],
-
     'actions' => [
         'edit_status' => [
             'label' => 'Atualizar status',
+            'label_with_state' => 'Status: :state',
             'heading' => 'Atualizar status',
         ],
+        'delete' => [
+            'confirm' => 'This permanently deletes the product and cannot be undone. If you want to hide it from the storefront without losing it, archive it instead.',
+            'blocked' => 'This product has appeared on past orders and cannot be deleted — archive it instead so historical orders keep their reference.',
+            'disabled_tooltip' => 'Products with order history can\'t be deleted. Archive instead.',
+        ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'Nome',
@@ -79,6 +78,10 @@ return [
                     'label' => 'Rascunho',
                     'description' => 'Este produto ficará oculto em todos os canais e grupos de clientes',
                 ],
+                'archived' => [
+                    'label' => 'Archived',
+                    'description' => 'This product is retired but still referenced by historical orders. Move back to Draft to revive it.',
+                ],
             ],
         ],
         'tags' => [
@@ -90,7 +93,6 @@ return [
             'select_collection' => 'Selecione uma coleção',
         ],
     ],
-
     'pages' => [
         'availability' => [
             'label' => 'Disponibilidade',
@@ -129,5 +131,4 @@ return [
             'label' => 'Associações de produto',
         ],
     ],
-
 ];

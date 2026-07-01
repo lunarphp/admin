@@ -51,12 +51,12 @@ return [
         'backorder' => [
             'label' => 'Na zamówienie',
         ],
-        'purchasable' => [
-            'label' => 'Możliwość zakupu',
+        'selling_policy' => [
+            'label' => 'Zasady sprzedaży',
             'options' => [
                 'always' => 'Zawsze',
                 'in_stock' => 'Tylko gdy jest w magazynie',
-                'backorder' => 'Na zamówienie',
+                'in_stock_or_on_backorder' => 'W magazynie lub na zamówienie',
             ],
         ],
         'unit_quantity' => [

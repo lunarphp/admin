@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Filament\Resources\ProductResource;
 use Lunar\Admin\Filament\Resources\ProductVariantResource;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
+use Lunar\Filament\Schemas\ProductVariant\ProductVariantForm;
 
 class ManageVariantIdentifiers extends BaseEditRecord
 {
@@ -56,15 +57,15 @@ class ManageVariantIdentifiers extends BaseEditRecord
     {
         return $schema->components([
             Section::make()->schema([
-                ProductVariantResource::getSkuFormComponent()
+                ProductVariantForm::getSkuComponent()
                     ->live()->unique(
                         table: fn () => $this->getRecord()->getTable(),
                         ignorable: $this->getRecord(),
                         ignoreRecord: true,
                     ),
-                ProductVariantResource::getGtinFormComponent(),
-                ProductVariantResource::getMpnFormComponent(),
-                ProductVariantResource::getEanFormComponent(),
+                ProductVariantForm::getGtinComponent(),
+                ProductVariantForm::getMpnComponent(),
+                ProductVariantForm::getEanComponent(),
             ])->columns(1),
         ]);
     }

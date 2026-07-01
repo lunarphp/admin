@@ -6,12 +6,13 @@ use Filament\Actions\DeleteAction;
 use Filament\Resources\RelationManagers\RelationGroup;
 use Lunar\Admin\Base\LunarPanelDiscountInterface;
 use Lunar\Admin\Filament\Resources\DiscountResource;
-use Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers\CollectionConditionRelationManager;
-use Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers\ProductConditionRelationManager;
-use Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers\ProductRewardRelationManager;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
-use Lunar\DiscountTypes\BuyXGetY;
-use Lunar\Models\Currency;
+use Lunar\Core\DiscountTypes\BuyXGetY;
+use Lunar\Core\Facades\PriceCalculator;
+use Lunar\Core\Models\Currency;
+use Lunar\Filament\RelationManagers\Discount\CollectionConditionRelationManager;
+use Lunar\Filament\RelationManagers\Discount\ProductConditionRelationManager;
+use Lunar\Filament\RelationManagers\Discount\ProductRewardRelationManager;
 
 class EditDiscount extends BaseEditRecord
 {
@@ -69,7 +70,7 @@ class EditDiscount extends BaseEditRecord
             if (! $currency) {
                 continue;
             }
-            $data['data']['min_prices'][$currencyCode] = (int) round($value * $currency->factor);
+            $data['data']['min_prices'][$currencyCode] = PriceCalculator::toMinor($value, $currency);
         }
 
         foreach ($fixedPrices as $currencyCode => $fixedPrice) {
@@ -80,7 +81,7 @@ class EditDiscount extends BaseEditRecord
             if (! $currency) {
                 continue;
             }
-            $data['data']['fixed_values'][$currencyCode] = (int) round($fixedPrice * $currency->factor);
+            $data['data']['fixed_values'][$currencyCode] = PriceCalculator::toMinor($fixedPrice, $currency);
         }
 
         return $data;

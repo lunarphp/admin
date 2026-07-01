@@ -1,26 +1,17 @@
 <?php
 
 return [
-
     'label' => 'Comandă',
-
     'plural_label' => 'Comenzi',
-
     'breadcrumb' => [
         'manage' => 'Gestionează',
     ],
-
-    'tabs' => [
-        'all' => 'Toate',
-    ],
-
     'transactions' => [
         'capture' => 'Capturat',
         'intent' => 'Intenție',
         'refund' => 'Rambursat',
         'failed' => 'Eșuat',
     ],
-
     'table' => [
         'status' => [
             'label' => 'Stare',
@@ -63,7 +54,6 @@ return [
             'label' => 'Plasată înainte de',
         ],
     ],
-
     'form' => [
         'address' => [
             'first_name' => [
@@ -106,39 +96,33 @@ return [
                 'label' => 'Țară',
             ],
         ],
-
         'reference' => [
             'label' => 'Referință',
         ],
         'status' => [
-            'label' => 'Stare',
+            'label' => 'Order',
         ],
         'transaction' => [
             'label' => 'Tranzacție',
         ],
         'amount' => [
             'label' => 'Sumă',
-
             'hint' => [
                 'less_than_total' => 'Urmează să capturezi o sumă mai mică decât valoarea totală a tranzacției',
             ],
         ],
-
         'notes' => [
             'label' => 'Note',
         ],
         'confirm' => [
             'label' => 'Confirmă',
-
             'alert' => 'Este necesară confirmarea',
-
             'hint' => [
                 'capture' => 'Confirmă că dorești să capturezi această plată',
                 'refund' => 'Confirmă că dorești să rambursezi această sumă.',
             ],
         ],
     ],
-
     'infolist' => [
         'notes' => [
             'label' => 'Note',
@@ -178,7 +162,7 @@ return [
             'message' => 'la momentul comenzii: :count',
         ],
         'status' => [
-            'label' => 'Stare',
+            'label' => 'Order',
         ],
         'reference' => [
             'label' => 'Referință',
@@ -238,13 +222,14 @@ return [
             'refunded' => 'Această comandă a fost rambursată.',
         ],
     ],
-
     'action' => [
         'bulk_update_status' => [
             'label' => 'Actualizează starea',
             'notification' => 'Starea comenzilor a fost actualizată',
         ],
         'update_status' => [
+            'label' => 'Update Status',
+            'notification' => 'Order status updated',
             'new_status' => [
                 'label' => 'Stare nouă',
             ],
@@ -262,14 +247,11 @@ return [
         ],
         'edit_address' => [
             'label' => 'Editează',
-
             'notification' => [
                 'error' => 'Eroare',
-
                 'billing_address' => [
                     'saved' => 'Adresa de facturare a fost salvată',
                 ],
-
                 'shipping_address' => [
                     'saved' => 'Adresa de livrare a fost salvată',
                 ],
@@ -286,7 +268,6 @@ return [
         ],
         'capture_payment' => [
             'label' => 'Capturează plata',
-
             'notification' => [
                 'error' => 'A apărut o problemă la capturare',
                 'success' => 'Capturare reușită',
@@ -294,7 +275,6 @@ return [
         ],
         'refund_payment' => [
             'label' => 'Rambursare',
-
             'notification' => [
                 'error' => 'A apărut o problemă la rambursare',
                 'success' => 'Rambursare reușită',
@@ -302,4 +282,176 @@ return [
         ],
     ],
 
+    'fulfilments' => [
+        'heading' => 'Onorări',
+        'unreferenced' => 'Onorarea #:id',
+        'on_hold' => 'În așteptare',
+        'empty' => 'Nicio onorare încă.',
+        'columns' => [
+            'reference' => 'Referință',
+            'state' => 'Stare',
+            'items' => 'Articole',
+            'tracking' => 'Urmărire',
+            'shipped_at' => 'Expediat la',
+            'handed_over' => [
+                'shipping' => 'Expediat la',
+                'collection' => 'Ridicat la',
+                'digital' => 'Furnizat la',
+            ],
+            'handed_over_default' => 'Onorat la',
+        ],
+        'actions' => [
+            'more' => 'Mai multe acțiuni',
+            'notify' => 'Notifică clientul',
+            'add_tracking' => [
+                'label' => 'Adaugă urmărire',
+                'modal_heading' => 'Adaugă urmărire',
+                'notification' => [
+                    'success' => 'Urmărire adăugată.',
+                    'error' => 'Nu s-a putut adăuga urmărirea.',
+                ],
+            ],
+            'remove_tracking' => [
+                'label' => 'Elimină urmărirea',
+                'notification' => [
+                    'success' => 'Urmărire eliminată.',
+                    'error' => 'Nu s-a putut elimina urmărirea.',
+                ],
+            ],
+            'create' => [
+                'label' => 'Creează onorare',
+                'modal_heading' => 'Creează onorare',
+                'empty' => 'Fiecare linie este deja onorată.',
+                'notification' => [
+                    'success' => 'Onorare creată.',
+                    'error' => 'Nu s-a putut crea onorarea.',
+                ],
+            ],
+            'ship' => [
+                'label' => 'Marchează expediat',
+                'modal_heading' => 'Marchează onorarea ca expediată',
+                'notification' => [
+                    'success' => 'Onorare marcată ca expediată.',
+                    'error' => 'Nu s-a putut expedia onorarea.',
+                ],
+            ],
+            'fulfil' => [
+                'label' => 'Marchează onorat',
+                'modal_heading' => 'Marchează onorarea ca onorată',
+                'labels' => [
+                    'collection' => 'Marchează ridicat',
+                ],
+                'notification' => [
+                    'success' => 'Onorare marcată ca onorată.',
+                    'error' => 'Nu s-a putut onora onorarea.',
+                ],
+            ],
+            'cancel' => [
+                'label' => 'Anulează onorarea',
+                'modal_heading' => 'Anulează onorarea',
+                'description' => 'Aceasta readuce onorarea în starea în așteptare pentru a putea fi reluată. Toate detaliile de expediere sunt șterse.',
+                'notification' => [
+                    'success' => 'Onorare anulată.',
+                    'error' => 'Nu s-a putut anula onorarea.',
+                ],
+            ],
+            'change_location' => [
+                'label' => 'Schimbă locația',
+                'modal_heading' => 'Schimbă locația onorării',
+                'field' => 'Locație',
+                'notification' => [
+                    'success' => 'Locația onorării a fost actualizată.',
+                    'error' => 'Nu s-a putut schimba locația onorării.',
+                ],
+            ],
+            'return' => [
+                'label' => 'Returnează',
+                'notification' => [
+                    'success' => 'Onorare returnată.',
+                    'error' => 'Nu s-a putut returna onorarea.',
+                ],
+            ],
+            'update_status' => [
+                'label' => 'Actualizează starea',
+            ],
+            'transition' => [
+                'modal_heading' => 'Marchezi onorarea ca :status?',
+                'notification' => [
+                    'success' => 'Starea onorării a fost actualizată.',
+                    'error' => 'Nu s-a putut actualiza starea onorării.',
+                ],
+            ],
+            'undo_return' => [
+                'label' => 'Anulează returul',
+                'notification' => [
+                    'success' => 'Retur anulat.',
+                    'error' => 'Nu s-a putut anula returul.',
+                ],
+            ],
+            'hold' => [
+                'label' => 'Pune în așteptare',
+                'modal_heading' => 'Pune onorarea în așteptare',
+                'reason' => 'Motiv',
+                'note' => 'Notă',
+                'notification' => [
+                    'success' => 'Onorare pusă în așteptare.',
+                    'error' => 'Nu s-a putut pune onorarea în așteptare.',
+                ],
+            ],
+            'release' => [
+                'label' => 'Eliberează din așteptare',
+                'notification' => [
+                    'success' => 'Onorare eliberată.',
+                    'error' => 'Nu s-a putut elibera onorarea.',
+                ],
+            ],
+            'split' => [
+                'label' => 'Împarte',
+                'confirm' => 'Împarte onorarea',
+                'cancel' => 'Anulează',
+                'empty' => 'Selectează o cantitate de separat.',
+                'modal_heading' => 'Împarte onorarea',
+                'notification' => [
+                    'success' => 'Onorare împărțită.',
+                    'error' => 'Nu s-a putut împărți onorarea.',
+                ],
+            ],
+            'merge' => [
+                'label' => 'Îmbină',
+                'confirm' => 'Îmbină onorarea',
+                'cancel' => 'Anulează',
+                'modal_heading' => 'Îmbină onorarea',
+                'description' => 'Selectează articolele pe care dorești să le îmbini.',
+                'target' => 'Îmbină cu',
+                'empty' => 'Selectează articole și o destinație pentru îmbinare.',
+                'notification' => [
+                    'success' => 'Onorări îmbinate.',
+                    'error' => 'Nu s-au putut îmbina onorările.',
+                ],
+            ],
+        ],
+        'fields' => [
+            'quantity' => 'Cantitate',
+            'tracking' => 'Urmărire',
+            'tracking_item' => 'Urmărire #:number',
+            'unit_price' => 'Preț unitar',
+            'sub_total' => 'Subtotal',
+            'discount_total' => 'Total reduceri',
+            'total' => 'Total',
+            'stock_level' => 'Nivel curent de stoc: :count',
+            'of' => 'din :count',
+            'outstanding' => 'Restant: :count',
+            'tracking_number' => 'Număr de urmărire',
+            'tracking_url' => 'URL de urmărire',
+            'carrier' => 'Curier',
+            'carrier_custom' => 'Personalizat / altul',
+            'tracking_url_help' => 'Necesar doar pentru curierii fără un link de urmărire automat.',
+            'shipping_method' => 'Metodă de livrare',
+            'move_quantity' => 'Cantitate de mutat',
+        ],
+    ],
+
+    'other_items' => [
+        'heading' => 'Alte articole',
+    ],
 ];

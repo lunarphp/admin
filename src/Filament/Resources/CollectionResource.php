@@ -3,11 +3,7 @@
 namespace Lunar\Admin\Filament\Resources;
 
 use Filament\Pages\Enums\SubNavigationPosition;
-use Filament\Schemas\Components\Component;
 use Filament\Schemas\Schema;
-use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Filament\Resources\CollectionResource\Pages\EditCollection;
 use Lunar\Admin\Filament\Resources\CollectionResource\Pages\ListCollections;
 use Lunar\Admin\Filament\Resources\CollectionResource\Pages\ManageCollectionAvailability;
@@ -15,15 +11,22 @@ use Lunar\Admin\Filament\Resources\CollectionResource\Pages\ManageCollectionChil
 use Lunar\Admin\Filament\Resources\CollectionResource\Pages\ManageCollectionMedia;
 use Lunar\Admin\Filament\Resources\CollectionResource\Pages\ManageCollectionProducts;
 use Lunar\Admin\Filament\Resources\CollectionResource\Pages\ManageCollectionUrls;
-use Lunar\Admin\Support\Forms\Components\Attributes;
 use Lunar\Admin\Support\Resources\BaseResource;
-use Lunar\Models\Contracts\Collection as CollectionContract;
+use Lunar\Core\Models\Collection;
+use Lunar\Filament\GlobalSearch\CollectionGlobalSearch;
+use Lunar\Filament\GlobalSearch\Concerns\HasLunarGlobalSearch;
+use Lunar\Filament\Schemas\Collection\CollectionForm;
+use Lunar\Filament\Support\Resolver;
 
 class CollectionResource extends BaseResource
 {
+    use HasLunarGlobalSearch;
+
+    protected static string $globalSearch = CollectionGlobalSearch::class;
+
     protected static ?string $permission = 'catalog:manage-collections';
 
-    protected static ?string $model = CollectionContract::class;
+    protected static ?string $model = Collection::class;
 
     protected static int $globalSearchResultsLimit = 5;
 
@@ -44,8 +47,10 @@ class CollectionResource extends BaseResource
         return [];
     }
 
-    public static function getCollectionBreadcrumbs(CollectionContract $collection): array
+    public static function getCollectionBreadcrumbs(Collection $collection): array
     {
+        $collection->loadMissing('group');
+
         $crumbs = [
             CollectionGroupResource::getUrl('index') => CollectionGroupResource::getPluralLabel(),
             CollectionGroupResource::getUrl('edit', [
@@ -58,43 +63,23 @@ class CollectionResource extends BaseResource
             CollectionResource::getUrl('edit', [
                 'record' => $childCollection,
             ])
-            ] = $childCollection->attr('name');
+            ] = $childCollection->translate('name');
         }
 
         $crumbs[
         static::getUrl('edit', [
             'record' => $collection,
-        ])] = $collection->attr('name');
+        ])] = $collection->translate('name');
 
         return $crumbs;
     }
 
-    public static function getDefaultForm(Schema $schema): Schema
+    public static function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                static::getAttributeDataFormComponent(),
-            ])
-            ->columns(1);
+        return Resolver::form(CollectionForm::class, $schema);
     }
 
-    protected static function getAttributeDataFormComponent(): Component
-    {
-        return Attributes::make();
-    }
-
-    protected static function getMainFormComponents(): array
-    {
-        return [
-        ];
-    }
-
-    protected static function getDefaultRelations(): array
-    {
-        return [];
-    }
-
-    public static function getDefaultSubNavigation(): array
+    protected static function getDefaultSubNavigation(): array
     {
         return [
             EditCollection::class,
@@ -106,7 +91,7 @@ class CollectionResource extends BaseResource
         ];
     }
 
-    public static function getDefaultPages(): array
+    protected static function getDefaultPages(): array
     {
         return [
             'index' => ListCollections::route('/'),
@@ -117,24 +102,5 @@ class CollectionResource extends BaseResource
             'media' => ManageCollectionMedia::route('/{record}/media'),
             'urls' => ManageCollectionUrls::route('/{record}/urls'),
         ];
-    }
-
-    public static function getGlobalSearchResultTitle(Model $record): string|Htmlable
-    {
-        return $record->translateAttribute('name');
-    }
-
-    public static function getGloballySearchableAttributes(): array
-    {
-        return [
-            'group.name', // Needed to trig canGloballySearch()
-        ];
-    }
-
-    public static function getGlobalSearchEloquentQuery(): Builder
-    {
-        return parent::getGlobalSearchEloquentQuery()->with([
-            'group',
-        ]);
     }
 }

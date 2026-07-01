@@ -7,11 +7,12 @@ use Filament\Actions\DetachAction;
 use Filament\Forms\Components\Select;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Lunar\Admin\Filament\Resources\BrandResource;
 use Lunar\Admin\Support\Pages\BaseManageRelatedRecords;
-use Lunar\Admin\Support\Tables\Columns\TranslatedTextColumn;
-use Lunar\Models\Collection;
-use Lunar\Models\Contracts\Collection as CollectionContract;
+use Lunar\Core\Models\Collection;
+use Lunar\Filament\Forms\Components\CollectionSelect;
+use Lunar\Filament\Tables\Columns\TranslatedTextColumn;
 
 class ManageBrandCollections extends BaseManageRelatedRecords
 {
@@ -42,10 +43,12 @@ class ManageBrandCollections extends BaseManageRelatedRecords
 
     protected function getDefaultTable(Table $table): Table
     {
-        return $table->columns([
-            TranslatedTextColumn::make('attribute_data.name')
+        return $table->modifyQueryUsing(
+            fn (Builder $query): Builder => $query->with('ancestors')
+        )->columns([
+            TranslatedTextColumn::make('name')
                 ->description(fn (Collection $record): string => $record->breadcrumb->implode(' > '))
-                ->attributeData()
+                ->fieldHydrated('name')
                 ->limitedTooltip()
                 ->limit(50)
                 ->label(__('lunarpanel::product.table.name.label')),
@@ -53,19 +56,8 @@ class ManageBrandCollections extends BaseManageRelatedRecords
             DetachAction::make(),
         ])->headerActions([
             AttachAction::make()
-                ->recordSelect(
-                    function (Select $select) {
-                        return $select->placeholder(
-                            __('lunarpanel::brand.pages.collections.table.header_actions.attach.record_select.placeholder')
-                        )
-                            ->getSearchResultsUsing(static function (Select $component, string $search): array {
-                                return Collection::search($search)
-                                    ->get()
-                                    ->mapWithKeys(fn (CollectionContract $record): array => [$record->getKey() => $record->breadcrumb->push($record->translateAttribute('name'))->join(' > ')])
-                                    ->all();
-                            });
-                    }
-                ),
+                ->recordSelect(fn (Select $select) => CollectionSelect::applyTo($select)
+                    ->placeholder(__('lunarpanel::brand.pages.collections.table.header_actions.attach.record_select.placeholder'))),
         ]);
     }
 }

@@ -1,19 +1,15 @@
 <?php
 
 return [
-
     'label' => 'Sản phẩm',
-
     'plural_label' => 'Sản phẩm',
-
     'tabs' => [
         'all' => 'Tất cả',
+        'published' => 'Published',
+        'draft' => 'Draft',
+        'archived' => 'Archived',
     ],
-
     'status' => [
-        'unpublished' => [
-            'content' => 'Hiện đang ở trạng thái nháp, sản phẩm này không khả dụng trên tất cả các kênh và nhóm khách hàng.',
-        ],
         'availability' => [
             'customer_groups' => 'Sản phẩm này hiện không có sẵn cho tất cả các nhóm khách hàng.',
             'channels' => 'Sản phẩm này hiện không có sẵn trên tất cả các kênh.',
@@ -21,7 +17,6 @@ return [
             'no_default_customer_group' => 'Chưa thiết lập nhóm khách hàng mặc định, do đó không thể kiểm soát khả năng hiển thị cho khách tại đây. Đánh dấu một nhóm khách hàng làm mặc định để quản lý quyền truy cập của khách.',
         ],
     ],
-
     'table' => [
         'status' => [
             'label' => 'Trạng thái',
@@ -47,14 +42,18 @@ return [
             'label' => 'Loại sản phẩm',
         ],
     ],
-
     'actions' => [
         'edit_status' => [
             'label' => 'Cập nhật trạng thái',
+            'label_with_state' => 'Status: :state',
             'heading' => 'Cập nhật trạng thái',
         ],
+        'delete' => [
+            'confirm' => 'This permanently deletes the product and cannot be undone. If you want to hide it from the storefront without losing it, archive it instead.',
+            'blocked' => 'This product has appeared on past orders and cannot be deleted — archive it instead so historical orders keep their reference.',
+            'disabled_tooltip' => 'Products with order history can\'t be deleted. Archive instead.',
+        ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'Tên',
@@ -79,16 +78,21 @@ return [
                     'label' => 'Bản nháp',
                     'description' => 'Sản phẩm này sẽ bị ẩn trên tất cả các kênh và nhóm khách hàng',
                 ],
+                'archived' => [
+                    'label' => 'Archived',
+                    'description' => 'This product is retired but still referenced by historical orders. Move back to Draft to revive it.',
+                ],
             ],
         ],
         'tags' => [
             'label' => 'Thẻ',
+            'helper_text' => 'Separate tags by pressing Enter, Tab or comma (,)',
         ],
         'collections' => [
             'label' => 'Bộ sưu tập',
+            'select_collection' => 'Select a collection',
         ],
     ],
-
     'pages' => [
         'availability' => [
             'label' => 'Tình trạng có sẵn',
@@ -127,5 +131,4 @@ return [
             'label' => 'Liên kết sản phẩm',
         ],
     ],
-
 ];

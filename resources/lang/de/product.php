@@ -1,15 +1,15 @@
 <?php
 
 return [
-
     'label' => 'Produkt',
-
     'plural_label' => 'Produkte',
-
+    'tabs' => [
+        'all' => 'All',
+        'published' => 'Published',
+        'draft' => 'Draft',
+        'archived' => 'Archived',
+    ],
     'status' => [
-        'unpublished' => [
-            'content' => 'Derzeit im Entwurfsstatus, dieses Produkt ist in allen Kanälen und Kundengruppen nicht verfügbar.',
-        ],
         'availability' => [
             'customer_groups' => 'Dieses Produkt ist derzeit für alle Kundengruppen nicht verfügbar.',
             'channels' => 'Dieses Produkt ist derzeit für alle Kanäle nicht verfügbar.',
@@ -17,7 +17,6 @@ return [
             'no_default_customer_group' => 'Es ist keine Standard-Kundengruppe festgelegt, daher kann die Sichtbarkeit für Gäste hier nicht gesteuert werden. Markieren Sie eine Kundengruppe als Standard, um den Gastzugriff zu steuern.',
         ],
     ],
-
     'table' => [
         'status' => [
             'label' => 'Status',
@@ -43,14 +42,18 @@ return [
             'label' => 'Produkttyp',
         ],
     ],
-
     'actions' => [
         'edit_status' => [
             'label' => 'Status aktualisieren',
+            'label_with_state' => 'Status: :state',
             'heading' => 'Status aktualisieren',
         ],
+        'delete' => [
+            'confirm' => 'This permanently deletes the product and cannot be undone. If you want to hide it from the storefront without losing it, archive it instead.',
+            'blocked' => 'This product has appeared on past orders and cannot be deleted — archive it instead so historical orders keep their reference.',
+            'disabled_tooltip' => 'Products with order history can\'t be deleted. Archive instead.',
+        ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'Name',
@@ -75,22 +78,27 @@ return [
                     'label' => 'Entwurf',
                     'description' => 'Dieses Produkt wird in allen Kanälen und Kundengruppen verborgen sein',
                 ],
+                'archived' => [
+                    'label' => 'Archived',
+                    'description' => 'This product is retired but still referenced by historical orders. Move back to Draft to revive it.',
+                ],
             ],
         ],
         'tags' => [
             'label' => 'Tags',
+            'helper_text' => 'Separate tags by pressing Enter, Tab or comma (,)',
         ],
         'collections' => [
             'label' => 'Sammlungen',
+            'select_collection' => 'Select a collection',
         ],
     ],
-
     'pages' => [
         'availability' => [
             'label' => 'Verfügbarkeit',
         ],
-        'media' => [
-            'label' => 'Medien',
+        'edit' => [
+            'title' => 'Basic Information',
         ],
         'identifiers' => [
             'label' => 'Produktkennungen',
@@ -123,5 +131,4 @@ return [
             'label' => 'Produktverknüpfungen',
         ],
     ],
-
 ];

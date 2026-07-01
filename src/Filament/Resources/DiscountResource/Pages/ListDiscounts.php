@@ -6,6 +6,7 @@ use Filament\Actions\CreateAction;
 use Filament\Schemas\Components\Group;
 use Lunar\Admin\Filament\Resources\DiscountResource;
 use Lunar\Admin\Support\Pages\BaseListRecords;
+use Lunar\Filament\Schemas\Discount\DiscountForm;
 
 class ListDiscounts extends BaseListRecords
 {
@@ -16,14 +17,14 @@ class ListDiscounts extends BaseListRecords
         return [
             CreateAction::make()->schema([
                 Group::make([
-                    DiscountResource::getNameFormComponent(),
-                    DiscountResource::getHandleFormComponent(),
+                    DiscountForm::getNameComponent(),
+                    DiscountForm::getHandleComponent(),
                 ])->columns(2),
                 Group::make([
-                    DiscountResource::getStartsAtFormComponent(),
-                    DiscountResource::getEndsAtFormComponent(),
+                    DiscountForm::getStartsAtComponent(),
+                    DiscountForm::getEndsAtComponent(),
                 ])->columns(2),
-                DiscountResource::getDiscountTypeFormComponent(),
+                DiscountForm::getDiscountTypeComponent(),
             ]),
         ];
     }

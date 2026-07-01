@@ -6,63 +6,59 @@ return [
             'updated' => 'Etiquetas actualizadas',
         ],
     ],
-
     'activity-log' => [
         'input' => [
             'placeholder' => 'Agregar un comentario',
         ],
-
         'action' => [
             'add-comment' => 'Agregar Comentario',
         ],
-
         'system' => 'Sistema',
-
         'partials' => [
             'orders' => [
                 'order_created' => 'Pedido Creado',
-
                 'status_change' => 'Estado actualizado',
+                'order_closed' => 'Pedido cerrado',
+                'order_reopened' => 'Pedido reabierto',
+                'order_cancelled' => 'Pedido cancelado (:reason)',
+                'order_cancelled_no_reason' => 'Pedido cancelado',
+
+                'email_notification' => 'Sent :notification to :email',
+
+                'email_notification_fallback' => 'a notification',
+                'fulfilment_state' => 'Cumplimiento n.º :id marcado como :state',
+                'fulfilment_held' => 'Cumplimiento n.º :id puesto en espera (:reason)',
+                'fulfilment_held_no_reason' => 'Cumplimiento n.º :id puesto en espera',
+                'fulfilment_released' => 'Cumplimiento n.º :id liberado de la espera',
 
                 'capture' => 'Pago de :amount con tarjeta terminando en :last_four',
-
                 'authorized' => 'Autorizado de :amount con tarjeta terminando en :last_four',
-
                 'refund' => 'Reembolso de :amount con tarjeta terminando en :last_four',
-
                 'address' => ':type actualizado',
-
                 'billingAddress' => 'Dirección de facturación',
-
                 'shippingAddress' => 'Dirección de envío',
             ],
-
             'update' => [
                 'updated' => ':model actualizado',
             ],
-
             'create' => [
                 'created' => ':model creado',
             ],
-
             'tags' => [
                 'updated' => 'Etiquetas actualizadas',
                 'added' => 'Agregado',
                 'removed' => 'Eliminado',
             ],
         ],
-
         'notification' => [
             'comment_added' => 'Comentario agregado',
         ],
     ],
-
     'forms' => [
         'youtube' => [
             'helperText' => 'Ingresa el ID del video de YouTube. ej. dQw4w9WgXcQ',
         ],
     ],
-
     'collection-tree-view' => [
         'actions' => [
             'move' => [
@@ -85,7 +81,6 @@ return [
             ],
         ],
     ],
-
     'product-options-list' => [
         'add-option' => [
             'label' => 'Agregar Opción',

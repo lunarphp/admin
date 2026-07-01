@@ -1,22 +1,17 @@
 <?php
 
-use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Lunar\Base\Traits\Searchable;
-use Lunar\DataTypes\Price;
-use Lunar\FieldTypes\TranslatedText;
-use Lunar\Models\Address;
-use Lunar\Models\Attribute;
-use Lunar\Models\ProductVariant;
-
-use function Filament\Support\generate_search_column_expression;
-use function Filament\Support\generate_search_term_expression;
+use Lunar\Core\DataObjects\PriceValue;
+use Lunar\Core\Models\Address;
+use Lunar\Core\Models\Concerns\Searchable;
+use Lunar\Core\Models\ProductVariant;
+use Lunar\Filament\Forms\Components\Support\RecordSearch;
 
 if (! function_exists('price')) {
-    function price($value, $currency, $unitQty = 1)
+    function price($value, $currency)
     {
-        return new Price($value, $currency, $unitQty);
+        return new PriceValue((int) $value, $currency);
     }
 }
 
@@ -79,57 +74,11 @@ if (! function_exists('db_date')) {
 
 if (! function_exists('get_search_builder')) {
 
+    /**
+     * @deprecated Use `\Lunar\Filament\Forms\Components\Support\RecordSearch::for()` instead. Removal targeted for v3.
+     */
     function get_search_builder(string $model, string $search): Laravel\Scout\Builder|Builder
     {
-        $scoutEnabled = config('lunar.panel.scout_enabled', false);
-        $isScoutSearchable = in_array(Searchable::class, class_uses_recursive($model));
-
-        if (
-            $scoutEnabled &&
-            $isScoutSearchable
-        ) {
-            return $model::search($search);
-        } else {
-            $query = $model::query();
-
-            /** @var Connection $databaseConnection */
-            $databaseConnection = $query->getConnection();
-
-            $search = generate_search_term_expression($search, true, $databaseConnection);
-
-            $isForcedCaseInsensitive = true;
-
-            foreach (explode(' ', $search) as $searchWord) {
-                $query->where(function (Builder $query) use ($model, $searchWord, $isForcedCaseInsensitive, $databaseConnection) {
-                    $attributes = Attribute::whereAttributeType($model::morphName())
-                        ->whereSearchable(true)
-                        ->get();
-
-                    $searchableAttributes = [];
-
-                    foreach ($attributes as $attribute) {
-                        if ($attribute->type == TranslatedText::class) {
-                            array_push($searchableAttributes, 'attribute_data->'.$attribute->handle.'->value');
-                        }
-                    }
-
-                    $isFirst = true;
-
-                    foreach ($searchableAttributes as $searchAttribute) {
-                        $whereClause = $isFirst ? 'where' : 'orWhere';
-
-                        $query->{$whereClause}(
-                            generate_search_column_expression($query->qualifyColumn($searchAttribute), $isForcedCaseInsensitive, $databaseConnection),
-                            'like',
-                            "%{$searchWord}%",
-                        );
-
-                        $isFirst = false;
-                    }
-                });
-            }
-
-            return $query;
-        }
+        return RecordSearch::for($model, $search);
     }
 }

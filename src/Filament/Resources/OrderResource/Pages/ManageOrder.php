@@ -2,19 +2,14 @@
 
 namespace Lunar\Admin\Filament\Resources\OrderResource\Pages;
 
-use Awcodes\Shout\Components\Shout;
-use Closure;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\Entry;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
@@ -27,6 +22,7 @@ use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Lunar\Admin\Filament\Resources\CustomerResource;
 use Lunar\Admin\Filament\Resources\OrderResource;
+use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysFulfilments;
 use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysOrderAddresses;
 use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysOrderSummary;
 use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysOrderTimeline;
@@ -34,17 +30,20 @@ use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysOrderTotals;
 use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysShippingInfo;
 use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysTransactions;
 use Lunar\Admin\Filament\Resources\OrderResource\Pages\Components\OrderItemsTable;
-use Lunar\Admin\Support\Actions\Orders\UpdateStatusAction;
-use Lunar\Admin\Support\Actions\PdfDownload;
 use Lunar\Admin\Support\ActivityLog\Concerns\CanDispatchActivityUpdated;
-use Lunar\Admin\Support\Concerns\CallsHooks;
-use Lunar\Admin\Support\Forms\Components\Tags as TagsComponent;
-use Lunar\Admin\Support\Infolists\Components\Livewire;
-use Lunar\Admin\Support\Infolists\Components\Tags;
 use Lunar\Admin\Support\Pages\BaseViewRecord;
-use Lunar\Models\Order;
-use Lunar\Models\Tag;
-use Lunar\Models\Transaction;
+use Lunar\Core\Models\Order;
+use Lunar\Core\Models\Tag;
+use Lunar\Filament\Actions\Orders\CancelOrderAction;
+use Lunar\Filament\Actions\Orders\CaptureOrderAction;
+use Lunar\Filament\Actions\Orders\CloseOrderAction;
+use Lunar\Filament\Actions\Orders\DownloadOrderPdfAction;
+use Lunar\Filament\Actions\Orders\NotifyCustomerAction;
+use Lunar\Filament\Actions\Orders\RefundOrderAction;
+use Lunar\Filament\Actions\Orders\ReopenOrderAction;
+use Lunar\Filament\Forms\Components\Tags as TagsComponent;
+use Lunar\Filament\Infolists\Components\Tags;
+use Lunar\Filament\Support\Concerns\CallsHooks;
 
 /**
  * @property Order $record
@@ -54,16 +53,12 @@ use Lunar\Models\Transaction;
  * @property int $captureTotal
  * @property int $refundTotal
  * @property int $intentTotal
- * @property Collection $intents
- * @property Collection $charges
- * @property Collection $refunds
- * @property float $availableToRefund
- * @property bool $canBeRefunded
  */
 class ManageOrder extends BaseViewRecord
 {
     use CallsHooks;
     use CanDispatchActivityUpdated;
+    use DisplaysFulfilments;
     use DisplaysOrderAddresses;
     use DisplaysOrderSummary;
     use DisplaysOrderTimeline;
@@ -91,15 +86,41 @@ class ManageOrder extends BaseViewRecord
 
     public static function getOrderLinesTable(): Livewire
     {
-        return Livewire::make('lines')
-            ->content(OrderItemsTable::class);
+        return Livewire::make(
+            OrderItemsTable::class,
+            fn ($record) => ['record' => $record],
+        )->key('lunar_livewire_order_lines');
+    }
+
+    /**
+     * Non-shipping lines not yet allocated to a fulfilment (shipping has its
+     * own section; allocated lines live in their fulfilment card). Shown
+     * regardless of type, so non-fulfillable service / custom-purchasable lines
+     * still render. Hidden when every line is either shipping or allocated to a
+     * fulfilment.
+     */
+    public static function getOtherItemsSection(): Component
+    {
+        return Section::make('other_items')
+            ->heading(__('lunarpanel::order.other_items.heading'))
+            ->compact()
+            ->visible(function ($record) {
+                return $record->lines()
+                    ->where('type', '!=', 'shipping')
+                    ->withoutFulfilment()
+                    ->exists();
+            })
+            ->schema([
+                static::getOrderLinesTable(),
+            ]);
     }
 
     public static function getInfolistSchema(): array
     {
         return self::callStaticLunarHook('extendInfolistSchema', [
             static::getShippingInfolist(),
-            static::getOrderLinesTable(),
+            static::getFulfilmentsInfolist(),
+            static::getOtherItemsSection(),
             static::getOrderTotalsInfolist(),
             static::getTransactionsInfolist(),
             static::getTimelineInfolist(),
@@ -207,28 +228,30 @@ class ManageOrder extends BaseViewRecord
             ->components([
                 Group::make()
                     ->schema([
-                        Group::make()->key('shouts')->schema([
-                            Shout::make('requires_capture')
-                                ->type('danger')
-                                ->content(__('lunarpanel::order.infolist.alert.requires_capture'))
-                                ->visible(fn () => $this->requiresCapture),
-                            Shout::make('partially_refunded')
-                                ->key('partially_refunded_notice')
-                                ->icon(fn () => match ($this->paymentStatus) {
-                                    'refunded' => FilamentIcon::resolve('lunar::exclamation-circle'),
-                                    default => null
-                                })
-                                ->color(fn () => match ($this->paymentStatus) {
-                                    'partial-refund' => 'info',
-                                    'refunded' => 'danger',
-                                    default => null
-                                })->content(fn () => match ($this->paymentStatus) {
-                                    'partial-refund' => __('lunarpanel::order.infolist.alert.partially_refunded'),
-                                    'refunded' => __('lunarpanel::order.infolist.alert.refunded'),
-                                    default => null
-                                })
-                                ->visible(fn () => in_array($this->paymentStatus, ['partial-refund', 'refunded'])),
-                        ]),
+                        Group::make()->key('shouts')
+                            ->visible(fn () => $this->requiresCapture || in_array($this->paymentStatus, ['partial-refund', 'refunded']))
+                            ->schema([
+                                Callout::make()
+                                    ->status('danger')
+                                    ->heading(__('lunarpanel::order.infolist.alert.requires_capture'))
+                                    ->visible(fn () => $this->requiresCapture),
+                                Callout::make()
+                                    ->key('partially_refunded_notice')
+                                    ->icon(fn () => match ($this->paymentStatus) {
+                                        'refunded' => FilamentIcon::resolve('lunar::exclamation-circle'),
+                                        default => null
+                                    })
+                                    ->status(fn () => match ($this->paymentStatus) {
+                                        'partial-refund' => 'info',
+                                        'refunded' => 'danger',
+                                        default => null
+                                    })->heading(fn () => match ($this->paymentStatus) {
+                                        'partial-refund' => __('lunarpanel::order.infolist.alert.partially_refunded'),
+                                        'refunded' => __('lunarpanel::order.infolist.alert.refunded'),
+                                        default => null
+                                    })
+                                    ->visible(fn () => in_array($this->paymentStatus, ['partial-refund', 'refunded'])),
+                            ]),
                         ...static::getInfolistSchema(),
                     ])
                     ->columnSpan(['lg' => 2]),
@@ -307,7 +330,7 @@ class ManageOrder extends BaseViewRecord
     {
         return $this->transactions->filter(function ($transaction) {
             return $transaction->type == 'capture' && $transaction->success;
-        })->sum('amount.value');
+        })->sum('amount');
     }
 
     /**
@@ -318,7 +341,7 @@ class ManageOrder extends BaseViewRecord
     {
         return $this->transactions->filter(function ($transaction) {
             return $transaction->type == 'refund' && $transaction->success;
-        })->sum('amount.value');
+        })->sum('amount');
     }
 
     /**
@@ -329,7 +352,7 @@ class ManageOrder extends BaseViewRecord
     {
         return $this->transactions->filter(function ($transaction) {
             return $transaction->type == 'intent' && $transaction->success;
-        })->sum('amount.value');
+        })->sum('amount');
     }
 
     public static function getEditTagsActions(): Action
@@ -357,204 +380,16 @@ class ManageOrder extends BaseViewRecord
 
     protected function getDefaultHeaderActions(): array
     {
+        $bumpActivity = fn () => $this->dispatchActivityUpdated();
+
         return [
-            $this->getCaptureAction(),
-            $this->getRefundAction(),
-            UpdateStatusAction::make('update_status')
-                ->after(
-                    function () {
-                        $this->dispatchActivityUpdated();
-                    }
-                ),
-            PdfDownload::make('download_pdf')
-                ->pdfView('lunarpanel::pdf.order')
-                ->label(__('lunarpanel::order.action.download_order_pdf.label'))
-                ->filename(function ($record) {
-                    return "Order-{$record->reference}.pdf";
-                }),
+            CaptureOrderAction::make(),
+            RefundOrderAction::make(),
+            CloseOrderAction::make()->after($bumpActivity),
+            ReopenOrderAction::make()->after($bumpActivity),
+            CancelOrderAction::make()->after($bumpActivity),
+            NotifyCustomerAction::make()->after($bumpActivity),
+            DownloadOrderPdfAction::make(),
         ];
-    }
-
-    protected function getRefundAction(): Action
-    {
-        return Action::make('refund')
-            ->label(__('lunarpanel::order.action.refund_payment.label'))
-            ->modalSubmitActionLabel(__('lunarpanel::order.action.refund_payment.label'))
-            ->icon('heroicon-o-backward')
-            ->schema(fn () => [
-
-                Select::make('transaction')
-                    ->label(__('lunarpanel::order.form.transaction.label'))
-                    ->required()
-                    ->default(fn () => $this->charges->first()->id)
-                    ->options(fn () => $this->charges
-                        ->mapWithKeys(fn ($charge) => [
-                            $charge->id => "{$charge->amount->formatted} - {$charge->driver} // {$charge->reference}",
-                        ]))
-                    ->live(),
-
-                TextInput::make('amount')
-                    ->required()
-                    ->label(__('lunarpanel::order.form.amount.label'))
-                    ->suffix(fn ($record) => $record->currency->code)
-                    ->default(fn ($record) => number_format($this->availableToRefund / $record->currency->factor, $record->currency->decimal_places, '.', ''))
-                    ->live()
-                    ->autocomplete(false)
-                    ->minValue(
-                        fn ($record) => 1 / $record->currency->factor
-                    )
-                    ->numeric(),
-
-                Textarea::make('notes')
-                    ->label(__('lunarpanel::order.form.notes.label'))
-                    ->autocomplete(false)
-                    ->maxLength(255),
-
-                Toggle::make('confirm')
-                    ->label(__('lunarpanel::order.form.confirm.label'))
-                    ->helperText(__('lunarpanel::order.form.confirm.hint.refund'))
-                    ->rules([
-                        function () {
-                            return function (string $attribute, $value, Closure $fail) {
-                                if ($value !== true) {
-                                    $fail(__('lunarpanel::order.form.confirm.alert'));
-                                }
-                            };
-                        },
-                    ]),
-            ])
-            ->action(function ($data, $record, Action $action) {
-                $transaction = Transaction::findOrFail($data['transaction']);
-
-                $response = $transaction->refund(bcmul($data['amount'], $record->currency->factor), $data['notes']);
-
-                if (! $response->success) {
-                    $action->failureNotification(
-                        fn () => Notification::make('refund_failure')->color('danger')->title($response->message)
-                    );
-
-                    $action->failure();
-
-                    $action->halt();
-
-                    return;
-                }
-
-                $action->success();
-            })
-            ->successNotificationTitle(__('lunarpanel::order.action.refund_payment.notification.success'))
-            ->failureNotificationTitle(__('lunarpanel::order.action.refund_payment.notification.error'))
-            ->color('warning')
-            ->visible($this->charges->count() && $this->canBeRefunded);
-    }
-
-    #[Computed]
-    public function charges(): Collection
-    {
-        return $this->record->transactions()->whereType('capture')->whereSuccess(true)->get();
-    }
-
-    #[Computed]
-    public function refunds(): Collection
-    {
-        return $this->record->transactions()->whereType('refund')->whereSuccess(true)->get();
-    }
-
-    #[Computed]
-    public function availableToRefund(): float
-    {
-        return $this->charges->sum('amount.value') - $this->refunds->sum('amount.value');
-    }
-
-    #[Computed]
-    public function canBeRefunded(): bool
-    {
-        return $this->availableToRefund > 0;
-    }
-
-    protected function getCaptureAction(): Action
-    {
-        return Action::make('capture')
-            ->label(__('lunarpanel::order.action.capture_payment.label'))
-            ->modalSubmitActionLabel(__('lunarpanel::order.action.capture_payment.label'))
-            ->icon('heroicon-o-credit-card')
-            ->modalWidth('lg')
-            ->schema(fn () => [
-                Select::make('transaction')
-                    ->label(__('lunarpanel::order.form.transaction.label'))
-                    ->required()
-                    ->default(fn () => $this->intents->first()->id)
-                    ->options(fn () => $this->intents
-                        ->mapWithKeys(fn ($intent) => [
-                            $intent->id => "{$intent->amount->formatted} - {$intent->driver}",
-                        ]))
-                    ->live(),
-                TextInput::make('amount')
-                    ->required()
-                    ->label(__('lunarpanel::order.form.amount.label'))
-                    ->suffix(fn ($record) => $record->currency->code)
-                    ->default(fn ($record) => number_format($record->total->decimal, $record->currency->decimal_places, '.', ''))
-                    ->live()
-                    ->autocomplete(false)
-                    ->minValue(
-                        fn ($record) => 1 / $record->currency->factor
-                    )
-                    ->helperText(function (TextInput $component, $get, $state) {
-                        $transaction = Transaction::findOrFail($get('transaction'));
-
-                        $message = $transaction->amount->decimal > $state ? __('lunarpanel::order.form.amount.hint.less_than_total') : null;
-
-                        if (blank($message)) {
-                            return null;
-                        }
-
-                        return Shout::make('alert')
-                            ->container($component->getContainer())
-                            ->type('danger')
-                            ->icon(FilamentIcon::resolve('lunar::exclamation-circle'))
-                            ->content($message);
-                    })
-                    ->numeric(),
-                Toggle::make('confirm')
-                    ->label(__('lunarpanel::order.form.confirm.label'))
-                    ->helperText(__('lunarpanel::order.form.confirm.hint.capture'))
-                    ->rules([
-                        function () {
-                            return function (string $attribute, $value, Closure $fail) {
-                                if ($value !== true) {
-                                    $fail(__('lunarpanel::order.form.confirm.alert'));
-                                }
-                            };
-                        },
-                    ]),
-            ])
-            ->action(function ($data, $record, Action $action) {
-                $transaction = Transaction::findOrFail($data['transaction']);
-
-                $response = $transaction->capture(bcmul($data['amount'], $record->currency->factor));
-
-                if (! $response->success) {
-                    $action->failureNotification(
-                        fn () => Notification::make('capture_failure')->color('danger')->title($response->message)
-                    );
-
-                    $action->failure();
-
-                    $action->halt();
-
-                    return;
-                }
-
-                $action->success();
-            })
-            ->successNotificationTitle(__('lunarpanel::order.action.capture_payment.notification.success'))
-            ->failureNotificationTitle(__('lunarpanel::order.action.capture_payment.notification.error'))
-            ->visible($this->requiresCapture && $this->intents->count());
-    }
-
-    #[Computed]
-    public function intents(): Collection
-    {
-        return $this->record->transactions()->whereType('intent')->whereSuccess(true)->get();
     }
 }

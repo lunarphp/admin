@@ -22,9 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Unique;
-use Lunar\Admin\Events\ModelUrlsUpdated;
 use Lunar\Admin\Support\Pages\BaseManageRelatedRecords;
-use Lunar\Facades\ModelManifest;
 
 class ManageUrlsRelatedRecords extends BaseManageRelatedRecords
 {
@@ -66,7 +64,7 @@ class ManageUrlsRelatedRecords extends BaseManageRelatedRecords
                             ignoreRecord: true,
                             modifyRuleUsing: function (Unique $rule, callable $get) {
                                 return $rule
-                                    ->where('element_type', ModelManifest::get(static::$model))
+                                    ->where('element_type', (static::$model)::morphName())
                                     ->where('language_id', $get('language_id'));
                             }
                         )
@@ -74,7 +72,7 @@ class ManageUrlsRelatedRecords extends BaseManageRelatedRecords
                         ->required(),
                     Select::make('language_id')->label(
                         __('lunarpanel::relationmanagers.urls.table.language.label')
-                    )->relationship(name: 'language', titleAttribute: 'name')->required()->reactive(),
+                    )->relationship(name: 'language', titleAttribute: 'name')->required()->live(),
                 ])->columns(2)->columnSpan(2),
             ]);
     }
@@ -112,31 +110,15 @@ class ManageUrlsRelatedRecords extends BaseManageRelatedRecords
             ->headerActions([
                 CreateAction::make()->label(
                     __('lunarpanel::relationmanagers.urls.actions.create.label')
-                )->after(
-                    fn () => ModelUrlsUpdated::dispatch(
-                        $this->getOwnerRecord()
-                    )
                 ),
             ])
             ->recordActions([
-                EditAction::make()->after(
-                    fn () => ModelUrlsUpdated::dispatch(
-                        $this->getOwnerRecord()
-                    )
-                ),
-                DeleteAction::make()->after(
-                    fn () => ModelUrlsUpdated::dispatch(
-                        $this->getOwnerRecord()
-                    )
-                ),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()->after(
-                        fn () => ModelUrlsUpdated::dispatch(
-                            $this->getOwnerRecord()
-                        )
-                    ),
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

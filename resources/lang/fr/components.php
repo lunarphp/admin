@@ -6,23 +6,31 @@ return [
             'updated' => 'Étiquettes mises à jour',
         ],
     ],
-
     'activity-log' => [
-
         'input' => [
             'placeholder' => 'Ajouter un commentaire',
         ],
-
         'action' => [
             'add-comment' => 'Ajouter un commentaire',
         ],
-
         'system' => 'Système',
-
         'partials' => [
             'orders' => [
                 'order_created' => 'Commande créée',
                 'status_change' => 'Statut mis à jour',
+                'order_closed' => 'Commande clôturée',
+                'order_reopened' => 'Commande rouverte',
+                'order_cancelled' => 'Commande annulée (:reason)',
+                'order_cancelled_no_reason' => 'Commande annulée',
+
+                'email_notification' => 'Sent :notification to :email',
+
+                'email_notification_fallback' => 'a notification',
+                'fulfilment_state' => 'Traitement #:id marqué comme :state',
+                'fulfilment_held' => 'Traitement #:id mis en attente (:reason)',
+                'fulfilment_held_no_reason' => 'Traitement #:id mis en attente',
+                'fulfilment_released' => 'Traitement #:id sorti de l\'attente',
+
                 'capture' => 'Paiement de :amount sur la carte se terminant par :last_four',
                 'authorized' => 'Autorisation de :amount sur la carte se terminant par :last_four',
                 'refund' => 'Remboursement de :amount sur la carte se terminant par :last_four',
@@ -30,34 +38,27 @@ return [
                 'billingAddress' => 'Adresse de facturation',
                 'shippingAddress' => 'Adresse de livraison',
             ],
-
             'update' => [
                 'updated' => ':model mis à jour',
             ],
-
             'create' => [
                 'created' => ':model créé',
             ],
-
             'tags' => [
                 'updated' => 'Étiquettes mises à jour',
                 'added' => 'Ajouté',
                 'removed' => 'Supprimé',
             ],
         ],
-
         'notification' => [
             'comment_added' => 'Commentaire ajouté',
         ],
-
     ],
-
     'forms' => [
         'youtube' => [
             'helperText' => 'Entrez l\'ID de la vidéo YouTube. par exemple, dQw4w9WgXcQ',
         ],
     ],
-
     'collection-tree-view' => [
         'actions' => [
             'move' => [
@@ -80,7 +81,6 @@ return [
             ],
         ],
     ],
-
     'product-options-list' => [
         'add-option' => [
             'label' => 'Ajouter une option',

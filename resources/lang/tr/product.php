@@ -1,19 +1,15 @@
 <?php
 
 return [
-
     'label' => 'Ürün',
-
     'plural_label' => 'Ürünler',
-
     'tabs' => [
         'all' => 'Tümü',
+        'published' => 'Published',
+        'draft' => 'Draft',
+        'archived' => 'Archived',
     ],
-
     'status' => [
-        'unpublished' => [
-            'content' => 'Şu anda taslak durumunda olan bu ürün, tüm kanallarda ve müşteri gruplarında kullanılamaz.',
-        ],
         'availability' => [
             'customer_groups' => 'Bu ürün şu anda tüm müşteri grupları için mevcut değil.',
             'channels' => 'Bu ürün şu anda tüm kanallar için mevcut değil.',
@@ -21,7 +17,6 @@ return [
             'no_default_customer_group' => 'Varsayılan bir müşteri grubu ayarlanmadığından misafir görünürlüğü buradan kontrol edilemez. Misafir erişimini yönetmek için bir müşteri grubunu varsayılan olarak işaretleyin.',
         ],
     ],
-
     'table' => [
         'status' => [
             'label' => 'Durum',
@@ -47,14 +42,18 @@ return [
             'label' => 'Ürün Türü',
         ],
     ],
-
     'actions' => [
         'edit_status' => [
             'label' => 'Durumu Güncelle',
+            'label_with_state' => 'Status: :state',
             'heading' => 'Durumu Güncelle',
         ],
+        'delete' => [
+            'confirm' => 'This permanently deletes the product and cannot be undone. If you want to hide it from the storefront without losing it, archive it instead.',
+            'blocked' => 'This product has appeared on past orders and cannot be deleted — archive it instead so historical orders keep their reference.',
+            'disabled_tooltip' => 'Products with order history can\'t be deleted. Archive instead.',
+        ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'Ad',
@@ -79,6 +78,10 @@ return [
                     'label' => 'Taslak',
                     'description' => 'Bu ürün tüm kanallarda ve müşteri gruplarında gizlenecek',
                 ],
+                'archived' => [
+                    'label' => 'Archived',
+                    'description' => 'This product is retired but still referenced by historical orders. Move back to Draft to revive it.',
+                ],
             ],
         ],
         'tags' => [
@@ -90,7 +93,6 @@ return [
             'select_collection' => 'Bir koleksiyon seçin',
         ],
     ],
-
     'pages' => [
         'availability' => [
             'label' => 'Erişilebilirlik',
@@ -129,5 +131,4 @@ return [
             'label' => 'Ürün İlişkileri',
         ],
     ],
-
 ];

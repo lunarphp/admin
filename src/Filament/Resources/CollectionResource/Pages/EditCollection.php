@@ -3,14 +3,13 @@
 namespace Lunar\Admin\Filament\Resources\CollectionResource\Pages;
 
 use Filament\Actions\DeleteAction;
-use Filament\Forms\Components\Select;
 use Illuminate\Contracts\Support\Htmlable;
 use Lunar\Admin\Filament\Resources\CollectionGroupResource;
 use Lunar\Admin\Filament\Resources\CollectionResource;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
-use Lunar\Facades\DB;
-use Lunar\Models\Collection;
-use Lunar\Models\Contracts\Collection as CollectionContract;
+use Lunar\Core\Facades\DB;
+use Lunar\Core\Models\Collection;
+use Lunar\Filament\Forms\Components\CollectionSelect;
 
 class EditCollection extends BaseEditRecord
 {
@@ -51,23 +50,15 @@ class EditCollection extends BaseEditRecord
 
         return [
             DeleteAction::make('delete')->schema([
-                Select::make('target_collection')
-                    ->model(Collection::modelClass())
-                    ->searchable()
-                    ->getSearchResultsUsing(static function (Select $component, string $search) use ($record): array {
-                        return get_search_builder(Collection::modelClass(), $search)
-                            ->get()
-                            ->reject(
-                                fn ($result) => $result->isDescendantOf($record)
-                            )
-                            ->mapWithKeys(fn (CollectionContract $record): array => [$record->getKey() => $record->translateAttribute('name')])
-                            ->all();
-                    })->helperText(
+                CollectionSelect::make('target_collection')
+                    ->excludeSelf($record)
+                    ->excludeDescendantsOf($record)
+                    ->helperText(
                         'Choose which collection the children of this collection should be transferred to.'
                     )->hidden(
                         fn () => ! $record->children()->count()
                     ),
-            ])->before(function (CollectionContract $collection, array $data) {
+            ])->before(function (Collection $collection, array $data) {
 
                 $targetId = $data['target_collection'] ?? null;
 

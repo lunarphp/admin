@@ -1,21 +1,15 @@
 <?php
 
 return [
-
     'label' => 'منتج',
-
     'plural_label' => 'المنتجات',
-
     'tabs' => [
         'all' => 'الكل',
         'published' => 'منشور',
         'draft' => 'مسودة',
+        'archived' => 'Archived',
     ],
-
     'status' => [
-        'unpublished' => [
-            'content' => 'حالياً في حالة مسودة، هذا المنتج غير متاح في جميع واجهات البيع ومجموعات العملاء.',
-        ],
         'availability' => [
             'customer_groups' => 'هذا المنتج غير متاح حالياً لجميع مجموعات العملاء.',
             'channels' => 'هذا المنتج غير متاح حالياً لجميع واجهات البيع.',
@@ -23,7 +17,6 @@ return [
             'no_default_customer_group' => 'لم يتم تعيين مجموعة عملاء افتراضية، لذا لا يمكن التحكم برؤية الزوار من هنا. حدد مجموعة عملاء كافتراضية للتحكم بوصول الزوار.',
         ],
     ],
-
     'table' => [
         'status' => [
             'label' => 'الحالة',
@@ -49,14 +42,18 @@ return [
             'label' => 'نوع المنتج',
         ],
     ],
-
     'actions' => [
         'edit_status' => [
             'label' => 'تحديث الحالة',
+            'label_with_state' => 'Status: :state',
             'heading' => 'تحديث الحالة',
         ],
+        'delete' => [
+            'confirm' => 'This permanently deletes the product and cannot be undone. If you want to hide it from the storefront without losing it, archive it instead.',
+            'blocked' => 'This product has appeared on past orders and cannot be deleted — archive it instead so historical orders keep their reference.',
+            'disabled_tooltip' => 'Products with order history can\'t be deleted. Archive instead.',
+        ],
     ],
-
     'form' => [
         'name' => [
             'label' => 'الاسم',
@@ -81,6 +78,10 @@ return [
                     'label' => 'Draft',
                     'description' => 'سيكون هذا المنتج مخفيًا في جميع القنوات ومجموعات العملاء',
                 ],
+                'archived' => [
+                    'label' => 'Archived',
+                    'description' => 'This product is retired but still referenced by historical orders. Move back to Draft to revive it.',
+                ],
             ],
         ],
         'tags' => [
@@ -92,7 +93,6 @@ return [
             'select_collection' => 'اختر مجموعة',
         ],
     ],
-
     'pages' => [
         'availability' => [
             'label' => 'التوفر',
@@ -131,5 +131,4 @@ return [
             'label' => 'ارتباطات المنتج',
         ],
     ],
-
 ];

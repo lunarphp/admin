@@ -1,26 +1,17 @@
 <?php
 
 return [
-
     'label' => 'Order',
-
     'plural_label' => 'Orders',
-
     'breadcrumb' => [
         'manage' => 'Manage',
     ],
-
-    'tabs' => [
-        'all' => 'All',
-    ],
-
     'transactions' => [
         'capture' => 'Captured',
         'intent' => 'Intent',
         'refund' => 'Refunded',
         'failed' => 'Failed',
     ],
-
     'table' => [
         'status' => [
             'label' => 'Status',
@@ -63,7 +54,6 @@ return [
             'label' => 'Placed before',
         ],
     ],
-
     'form' => [
         'address' => [
             'first_name' => [
@@ -106,39 +96,33 @@ return [
                 'label' => 'Country',
             ],
         ],
-
         'reference' => [
             'label' => 'Reference',
         ],
         'status' => [
-            'label' => 'Status',
+            'label' => 'Order',
         ],
         'transaction' => [
             'label' => 'Transaction',
         ],
         'amount' => [
             'label' => 'Amount',
-
             'hint' => [
-                'less_than_total' => "You're about to capture an amount less than the total transaction value",
+                'less_than_total' => 'You\'re about to capture an amount less than the total transaction value',
             ],
         ],
-
         'notes' => [
             'label' => 'Notes',
         ],
         'confirm' => [
             'label' => 'Confirm',
-
             'alert' => 'Confirmation required',
-
             'hint' => [
                 'capture' => 'Please confirm you want to capture this payment',
                 'refund' => 'Please confirm you wish to refund this amount.',
             ],
         ],
     ],
-
     'infolist' => [
         'notes' => [
             'label' => 'Notes',
@@ -178,7 +162,7 @@ return [
             'message' => 'at time of ordering: :count',
         ],
         'status' => [
-            'label' => 'Status',
+            'label' => 'Order',
         ],
         'reference' => [
             'label' => 'Reference',
@@ -238,13 +222,14 @@ return [
             'refunded' => 'This order has been refunded.',
         ],
     ],
-
     'action' => [
         'bulk_update_status' => [
             'label' => 'Update Status',
             'notification' => 'Orders status updated',
         ],
         'update_status' => [
+            'label' => 'Update Status',
+            'notification' => 'Order status updated',
             'new_status' => [
                 'label' => 'New status',
             ],
@@ -262,14 +247,11 @@ return [
         ],
         'edit_address' => [
             'label' => 'Edit',
-
             'notification' => [
                 'error' => 'Error',
-
                 'billing_address' => [
                     'saved' => 'Billing address saved',
                 ],
-
                 'shipping_address' => [
                     'saved' => 'Shipping address saved',
                 ],
@@ -286,7 +268,6 @@ return [
         ],
         'capture_payment' => [
             'label' => 'Capture Payment',
-
             'notification' => [
                 'error' => 'There was a problem with the capture',
                 'success' => 'Capture successful',
@@ -294,7 +275,6 @@ return [
         ],
         'refund_payment' => [
             'label' => 'Refund',
-
             'notification' => [
                 'error' => 'There was a problem with the refund',
                 'success' => 'Refund successful',
@@ -302,4 +282,176 @@ return [
         ],
     ],
 
+    'fulfilments' => [
+        'heading' => 'تأمین‌های سفارش',
+        'unreferenced' => 'تأمین سفارش #:id',
+        'on_hold' => 'در حالت تعلیق',
+        'empty' => 'هنوز تأمین سفارشی وجود ندارد.',
+        'columns' => [
+            'reference' => 'شماره مرجع',
+            'state' => 'وضعیت',
+            'items' => 'اقلام',
+            'tracking' => 'رهگیری',
+            'shipped_at' => 'زمان ارسال',
+            'handed_over' => [
+                'shipping' => 'زمان ارسال',
+                'collection' => 'زمان تحویل حضوری',
+                'digital' => 'زمان تأمین دیجیتال',
+            ],
+            'handed_over_default' => 'زمان تأمین',
+        ],
+        'actions' => [
+            'more' => 'اقدامات بیشتر',
+            'notify' => 'اطلاع‌رسانی به مشتری',
+            'add_tracking' => [
+                'label' => 'افزودن رهگیری',
+                'modal_heading' => 'افزودن رهگیری',
+                'notification' => [
+                    'success' => 'رهگیری افزوده شد.',
+                    'error' => 'افزودن رهگیری ممکن نشد.',
+                ],
+            ],
+            'remove_tracking' => [
+                'label' => 'حذف رهگیری',
+                'notification' => [
+                    'success' => 'رهگیری حذف شد.',
+                    'error' => 'حذف رهگیری ممکن نشد.',
+                ],
+            ],
+            'create' => [
+                'label' => 'ایجاد تأمین سفارش',
+                'modal_heading' => 'ایجاد تأمین سفارش',
+                'empty' => 'همه ردیف‌ها از پیش تأمین شده‌اند.',
+                'notification' => [
+                    'success' => 'تأمین سفارش ایجاد شد.',
+                    'error' => 'ایجاد تأمین سفارش ممکن نشد.',
+                ],
+            ],
+            'ship' => [
+                'label' => 'علامت‌گذاری به‌عنوان ارسال‌شده',
+                'modal_heading' => 'علامت‌گذاری تأمین سفارش به‌عنوان ارسال‌شده',
+                'notification' => [
+                    'success' => 'تأمین سفارش به‌عنوان ارسال‌شده علامت‌گذاری شد.',
+                    'error' => 'ارسال تأمین سفارش ممکن نشد.',
+                ],
+            ],
+            'fulfil' => [
+                'label' => 'علامت‌گذاری به‌عنوان تأمین‌شده',
+                'modal_heading' => 'علامت‌گذاری تأمین سفارش به‌عنوان تأمین‌شده',
+                'labels' => [
+                    'collection' => 'علامت‌گذاری به‌عنوان تحویل‌گرفته‌شده',
+                ],
+                'notification' => [
+                    'success' => 'تأمین سفارش به‌عنوان تأمین‌شده علامت‌گذاری شد.',
+                    'error' => 'تأمین سفارش ممکن نشد.',
+                ],
+            ],
+            'cancel' => [
+                'label' => 'لغو تأمین سفارش',
+                'modal_heading' => 'لغو تأمین سفارش',
+                'description' => 'این کار تأمین سفارش را به حالت در انتظار بازمی‌گرداند تا بتوان دوباره آن را پیش برد. هرگونه جزئیات ارسال پاک می‌شود.',
+                'notification' => [
+                    'success' => 'تأمین سفارش لغو شد.',
+                    'error' => 'لغو تأمین سفارش ممکن نشد.',
+                ],
+            ],
+            'change_location' => [
+                'label' => 'تغییر موقعیت مکانی',
+                'modal_heading' => 'تغییر موقعیت مکانی تأمین سفارش',
+                'field' => 'موقعیت مکانی',
+                'notification' => [
+                    'success' => 'موقعیت مکانی تأمین سفارش به‌روزرسانی شد.',
+                    'error' => 'تغییر موقعیت مکانی تأمین سفارش ممکن نشد.',
+                ],
+            ],
+            'return' => [
+                'label' => 'بازگشت',
+                'notification' => [
+                    'success' => 'تأمین سفارش بازگردانده شد.',
+                    'error' => 'بازگرداندن تأمین سفارش ممکن نشد.',
+                ],
+            ],
+            'update_status' => [
+                'label' => 'به‌روزرسانی وضعیت',
+            ],
+            'transition' => [
+                'modal_heading' => 'تأمین سفارش به‌عنوان :status علامت‌گذاری شود؟',
+                'notification' => [
+                    'success' => 'وضعیت تأمین سفارش به‌روزرسانی شد.',
+                    'error' => 'به‌روزرسانی وضعیت تأمین سفارش ممکن نشد.',
+                ],
+            ],
+            'undo_return' => [
+                'label' => 'لغو بازگشت',
+                'notification' => [
+                    'success' => 'بازگشت لغو شد.',
+                    'error' => 'لغو بازگشت ممکن نشد.',
+                ],
+            ],
+            'hold' => [
+                'label' => 'تعلیق تأمین سفارش',
+                'modal_heading' => 'تعلیق تأمین سفارش',
+                'reason' => 'دلیل',
+                'note' => 'یادداشت',
+                'notification' => [
+                    'success' => 'تأمین سفارش در حالت تعلیق قرار گرفت.',
+                    'error' => 'تعلیق تأمین سفارش ممکن نشد.',
+                ],
+            ],
+            'release' => [
+                'label' => 'رفع تعلیق',
+                'notification' => [
+                    'success' => 'تعلیق تأمین سفارش رفع شد.',
+                    'error' => 'رفع تعلیق تأمین سفارش ممکن نشد.',
+                ],
+            ],
+            'split' => [
+                'label' => 'تفکیک',
+                'confirm' => 'تفکیک تأمین سفارش',
+                'cancel' => 'انصراف',
+                'empty' => 'تعدادی را برای تفکیک انتخاب کنید.',
+                'modal_heading' => 'تفکیک تأمین سفارش',
+                'notification' => [
+                    'success' => 'تأمین سفارش تفکیک شد.',
+                    'error' => 'تفکیک تأمین سفارش ممکن نشد.',
+                ],
+            ],
+            'merge' => [
+                'label' => 'ادغام',
+                'confirm' => 'ادغام تأمین سفارش',
+                'cancel' => 'انصراف',
+                'modal_heading' => 'ادغام تأمین سفارش',
+                'description' => 'اقلامی را که می‌خواهید ادغام کنید انتخاب کنید.',
+                'target' => 'ادغام با',
+                'empty' => 'برای ادغام، اقلام و یک مقصد را انتخاب کنید.',
+                'notification' => [
+                    'success' => 'تأمین‌های سفارش ادغام شدند.',
+                    'error' => 'ادغام تأمین‌های سفارش ممکن نشد.',
+                ],
+            ],
+        ],
+        'fields' => [
+            'quantity' => 'تعداد',
+            'tracking' => 'رهگیری',
+            'tracking_item' => 'رهگیری #:number',
+            'unit_price' => 'قیمت واحد',
+            'sub_total' => 'جمع جزء',
+            'discount_total' => 'جمع تخفیف',
+            'total' => 'جمع کل',
+            'stock_level' => 'موجودی فعلی انبار: :count',
+            'of' => 'از :count',
+            'outstanding' => 'باقی‌مانده: :count',
+            'tracking_number' => 'شماره رهگیری',
+            'tracking_url' => 'نشانی رهگیری',
+            'carrier' => 'شرکت حمل‌ونقل',
+            'carrier_custom' => 'سفارشی / سایر',
+            'tracking_url_help' => 'فقط برای شرکت‌های حمل‌ونقلی لازم است که پیوند رهگیری خودکار ندارند.',
+            'shipping_method' => 'روش ارسال',
+            'move_quantity' => 'تعداد برای انتقال',
+        ],
+    ],
+
+    'other_items' => [
+        'heading' => 'سایر اقلام',
+    ],
 ];
