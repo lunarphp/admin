@@ -2,8 +2,8 @@
 
 namespace Lunar\Admin\Filament\Resources\DiscountResource\Pages;
 
-use Filament\Actions\CreateAction;
-use Filament\Schemas\Components\Group;
+use Filament\Actions;
+use Filament\Forms;
 use Lunar\Admin\Filament\Resources\DiscountResource;
 use Lunar\Admin\Support\Pages\BaseListRecords;
 
@@ -14,12 +14,12 @@ class ListDiscounts extends BaseListRecords
     protected function getDefaultHeaderActions(): array
     {
         return [
-            CreateAction::make()->schema([
-                Group::make([
+            Actions\CreateAction::make()->form([
+                Forms\Components\Group::make([
                     DiscountResource::getNameFormComponent(),
                     DiscountResource::getHandleFormComponent(),
                 ])->columns(2),
-                Group::make([
+                Forms\Components\Group::make([
                     DiscountResource::getStartsAtFormComponent(),
                     DiscountResource::getEndsAtFormComponent(),
                 ])->columns(2),

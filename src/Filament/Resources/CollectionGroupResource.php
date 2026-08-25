@@ -2,20 +2,14 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Set;
-use Filament\Schemas\Schema;
+use Filament\Forms;
+use Filament\Forms\Components\Component;
+use Filament\Forms\Form;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
-use Lunar\Admin\Filament\Resources\CollectionGroupResource\Pages\EditCollectionGroup;
-use Lunar\Admin\Filament\Resources\CollectionGroupResource\Pages\ListCollectionGroups;
+use Lunar\Admin\Filament\Resources\CollectionGroupResource\Pages;
 use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\Models\Contracts\CollectionGroup as CollectionGroupContract;
 
@@ -47,11 +41,11 @@ class CollectionGroupResource extends BaseResource
         return __('lunarpanel::global.sections.catalog');
     }
 
-    public static function getDefaultForm(Schema $schema): Schema
+    public static function getDefaultForm(Form $form): Form
     {
-        return $schema
-            ->components([
-                Section::make()->schema(
+        return $form
+            ->schema([
+                Forms\Components\Section::make()->schema(
                     static::getMainFormComponents()
                 )->columns(2),
             ]);
@@ -67,14 +61,14 @@ class CollectionGroupResource extends BaseResource
 
     protected static function getNameFormComponent(): Component
     {
-        return TextInput::make('name')
+        return Forms\Components\TextInput::make('name')
             ->label(__('lunarpanel::collectiongroup.form.name.label'))
             ->required()
             ->maxLength(255)
             ->autofocus()
             ->unique(ignoreRecord: true)
             ->live(onBlur: true)
-            ->afterStateUpdated(function (string $operation, $state, Set $set) {
+            ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
                 if ($operation !== 'create') {
                     return;
                 }
@@ -84,18 +78,10 @@ class CollectionGroupResource extends BaseResource
 
     protected static function getHandleFormComponent(): Component
     {
-        return TextInput::make('handle')
+        return Forms\Components\TextInput::make('handle')
             ->label(__('lunarpanel::collectiongroup.form.handle.label'))
             ->unique(ignoreRecord: true)
             ->required()
-            ->live(onBlur: true)
-            ->afterStateUpdated(function (string $operation, $state, Set $set) {
-                if ($operation !== 'create') {
-                    return;
-                }
-
-                $set('handle', Str::snake(Str::lower($state)));
-            })
             ->maxLength(255);
     }
 
@@ -106,12 +92,12 @@ class CollectionGroupResource extends BaseResource
             ->filters([
                 //
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->actions([
+                Tables\Actions\EditAction::make(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -119,11 +105,11 @@ class CollectionGroupResource extends BaseResource
     protected static function getTableColumns(): array
     {
         return [
-            TextColumn::make('name')
+            Tables\Columns\TextColumn::make('name')
                 ->label(__('lunarpanel::collectiongroup.table.name.label')),
-            TextColumn::make('handle')
+            Tables\Columns\TextColumn::make('handle')
                 ->label(__('lunarpanel::collectiongroup.table.handle.label')),
-            TextColumn::make('collections_count')
+            Tables\Columns\TextColumn::make('collections_count')
                 ->counts('collections')
                 ->formatStateUsing(
                     fn ($state) => number_format($state, 0)
@@ -142,8 +128,8 @@ class CollectionGroupResource extends BaseResource
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListCollectionGroups::route('/'),
-            'edit' => EditCollectionGroup::route('/{record}/edit'),
+            'index' => Pages\ListCollectionGroups::route('/'),
+            'edit' => Pages\EditCollectionGroup::route('/{record}/edit'),
         ];
     }
 }

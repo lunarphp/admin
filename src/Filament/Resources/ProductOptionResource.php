@@ -2,23 +2,15 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Utilities\Set;
+use Filament\Forms;
+use Filament\Forms\Components\Component;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\BooleanColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
-use Lunar\Admin\Filament\Resources\ProductOptionResource\Pages\CreateProductOption;
-use Lunar\Admin\Filament\Resources\ProductOptionResource\Pages\EditProductOption;
-use Lunar\Admin\Filament\Resources\ProductOptionResource\Pages\ListProductOptions;
-use Lunar\Admin\Filament\Resources\ProductOptionResource\RelationManagers\ValuesRelationManager;
+use Lunar\Admin\Filament\Resources\ProductOptionResource\Pages;
+use Lunar\Admin\Filament\Resources\ProductOptionResource\RelationManagers;
 use Lunar\Admin\Support\Forms\Components\TranslatedText;
 use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\Admin\Support\Tables\Columns\TranslatedTextColumn;
@@ -68,7 +60,7 @@ class ProductOptionResource extends BaseResource
             ->label(__('lunarpanel::productoption.form.name.label'))
             ->required()
             ->maxLength(255)
-            ->afterStateUpdated(function (string $operation, $state, Set $set) {
+            ->afterStateUpdated(function (string $operation, $state, Forms\Set $set) {
                 if ($operation !== 'create') {
                     return;
                 }
@@ -89,18 +81,10 @@ class ProductOptionResource extends BaseResource
 
     protected static function getHandleFormComponent(): Component
     {
-        return TextInput::make('handle')
+        return Forms\Components\TextInput::make('handle')
             ->label(__('lunarpanel::productoption.form.handle.label'))
             ->required()
             ->maxLength(255)
-            ->live(onBlur: true)
-            ->afterStateUpdated(function (string $operation, $state, Set $set) {
-                if ($operation !== 'create') {
-                    return;
-                }
-
-                $set('handle', Str::snake(Str::lower($state)));
-            })
             ->disabled(fn ($operation, $record) => $operation == 'edit' && (! $record->shared));
     }
 
@@ -112,24 +96,22 @@ class ProductOptionResource extends BaseResource
                     ->label(__('lunarpanel::productoption.table.name.label'))
                     ->searchable(),
                 TranslatedTextColumn::make('label')
-                    ->label(__('lunarpanel::productoption.table.label.label'))
-                    ->searchable(),
-                TextColumn::make('handle')
-                    ->label(__('lunarpanel::productoption.table.handle.label'))
-                    ->searchable(),
-                BooleanColumn::make('shared')
+                    ->label(__('lunarpanel::productoption.table.label.label')),
+                Tables\Columns\TextColumn::make('handle')
+                    ->label(__('lunarpanel::productoption.table.handle.label')),
+                Tables\Columns\BooleanColumn::make('shared')
                     ->label(__('lunarpanel::productoption.table.shared.label')),
             ])
             ->filters([
-                Filter::make('shared')
+                Tables\Filters\Filter::make('shared')
                     ->query(fn (Builder $query): Builder => $query->where('shared', true)),
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->actions([
+                Tables\Actions\EditAction::make(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
             ->searchable();
@@ -138,16 +120,16 @@ class ProductOptionResource extends BaseResource
     public static function getRelations(): array
     {
         return [
-            ValuesRelationManager::class,
+            RelationManagers\ValuesRelationManager::class,
         ];
     }
 
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListProductOptions::route('/'),
-            'create' => CreateProductOption::route('/create'),
-            'edit' => EditProductOption::route('/{record}/edit'),
+            'index' => Pages\ListProductOptions::route('/'),
+            'create' => Pages\CreateProductOption::route('/create'),
+            'edit' => Pages\EditProductOption::route('/{record}/edit'),
         ];
     }
 }

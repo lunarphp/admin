@@ -2,20 +2,11 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Schema;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms;
+use Filament\Forms\Components\Component;
+use Filament\Tables;
 use Filament\Tables\Table;
-use Lunar\Admin\Filament\Resources\ProductTypeResource\Pages\CreateProductType;
-use Lunar\Admin\Filament\Resources\ProductTypeResource\Pages\EditProductType;
-use Lunar\Admin\Filament\Resources\ProductTypeResource\Pages\ListProductTypes;
+use Lunar\Admin\Filament\Resources\ProductTypeResource\Pages;
 use Lunar\Admin\Support\Forms\Components\AttributeSelector;
 use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\Models\Contracts\ProductType as ProductTypeContract;
@@ -28,7 +19,7 @@ class ProductTypeResource extends BaseResource
 
     protected static ?string $model = ProductTypeContract::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-swatch';  // TODO: remove me in Filament 3.1
+    protected static ?string $navigationIcon = 'heroicon-o-swatch';  // TODO: remove me in Filament 3.1
 
     protected static ?int $navigationSort = 2;
 
@@ -52,15 +43,15 @@ class ProductTypeResource extends BaseResource
         return __('lunarpanel::global.sections.catalog');
     }
 
-    public static function getDefaultForm(Schema $schema): Schema
+    public static function getDefaultForm(Forms\Form $form): Forms\Form
     {
-        return $schema
-            ->components([
-                Section::make()->schema(
+        return $form
+            ->schema([
+                Forms\Components\Section::make()->schema(
                     static::getMainFormComponents()
                 ),
-                Tabs::make('Attributes')->tabs([
-                    Tab::make(__('lunarpanel::producttype.tabs.product_attributes.label'))
+                Forms\Components\Tabs::make('Attributes')->tabs([
+                    Forms\Components\Tabs\Tab::make(__('lunarpanel::producttype.tabs.product_attributes.label'))
                         ->schema([
                             AttributeSelector::make('mappedAttributes')
                                 ->withType(Product::morphName())
@@ -68,7 +59,7 @@ class ProductTypeResource extends BaseResource
                                 ->label('')
                                 ->columnSpan(2),
                         ]),
-                    Tab::make(__('lunarpanel::producttype.tabs.variant_attributes.label'))
+                    Forms\Components\Tabs\Tab::make(__('lunarpanel::producttype.tabs.variant_attributes.label'))
                         ->schema([
                             AttributeSelector::make('mappedAttributes')
                                 ->withType(ProductVariant::morphName())
@@ -92,7 +83,7 @@ class ProductTypeResource extends BaseResource
 
     protected static function getNameFormComponent(): Component
     {
-        return TextInput::make('name')
+        return Forms\Components\TextInput::make('name')
             ->label(__('lunarpanel::producttype.form.name.label'))
             ->required()
             ->maxLength(255)
@@ -106,12 +97,12 @@ class ProductTypeResource extends BaseResource
             ->filters([
                 //
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->actions([
+                Tables\Actions\EditAction::make(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -119,21 +110,21 @@ class ProductTypeResource extends BaseResource
     protected static function getTableColumns(): array
     {
         return [
-            TextColumn::make('name')
+            Tables\Columns\TextColumn::make('name')
                 ->label(__('lunarpanel::producttype.table.name.label')),
-            TextColumn::make('products_count')
+            Tables\Columns\TextColumn::make('products_count')
                 ->counts('products')
                 ->formatStateUsing(
                     fn ($state) => number_format($state, 0)
                 )
                 ->label(__('lunarpanel::producttype.table.products_count.label')),
-            TextColumn::make('product_attributes_count')
+            Tables\Columns\TextColumn::make('product_attributes_count')
                 ->counts('productAttributes')
                 ->formatStateUsing(
                     fn ($state) => number_format($state, 0)
                 )
                 ->label(__('lunarpanel::producttype.table.product_attributes_count.label')),
-            TextColumn::make('variant_attributes_count')
+            Tables\Columns\TextColumn::make('variant_attributes_count')
                 ->counts('variantAttributes')
                 ->formatStateUsing(
                     fn ($state) => number_format($state, 0)
@@ -155,9 +146,9 @@ class ProductTypeResource extends BaseResource
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListProductTypes::route('/'),
-            'create' => CreateProductType::route('/create'),
-            'edit' => EditProductType::route('/{record}/edit'),
+            'index' => Pages\ListProductTypes::route('/'),
+            'create' => Pages\CreateProductType::route('/create'),
+            'edit' => Pages\EditProductType::route('/{record}/edit'),
         ];
     }
 }

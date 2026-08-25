@@ -2,17 +2,12 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Component;
+use Filament\Forms;
+use Filament\Forms\Components\Component;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
-use Lunar\Admin\Filament\Resources\TagResource\Pages\CreateTag;
-use Lunar\Admin\Filament\Resources\TagResource\Pages\EditTag;
-use Lunar\Admin\Filament\Resources\TagResource\Pages\ListTags;
+use Lunar\Admin\Filament\Resources\TagResource\Pages;
 use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\Models\Contracts\Tag as TagContract;
 
@@ -53,7 +48,7 @@ class TagResource extends BaseResource
 
     protected static function getValueFormComponent(): Component
     {
-        return TextInput::make('value')
+        return Forms\Components\TextInput::make('value')
             ->label(__('lunarpanel::tag.form.value.label'))
             ->required()
             ->maxLength(255)
@@ -67,12 +62,12 @@ class TagResource extends BaseResource
             ->filters([
                 //
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->actions([
+                Tables\Actions\EditAction::make(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -80,7 +75,7 @@ class TagResource extends BaseResource
     protected static function getTableColumns(): array
     {
         return [
-            TextColumn::make('value')
+            Tables\Columns\TextColumn::make('value')
                 ->label(__('lunarpanel::tag.table.value.label')),
         ];
     }
@@ -95,9 +90,9 @@ class TagResource extends BaseResource
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListTags::route('/'),
-            'create' => CreateTag::route('/create'),
-            'edit' => EditTag::route('/{record}/edit'),
+            'index' => Pages\ListTags::route('/'),
+            'create' => Pages\CreateTag::route('/create'),
+            'edit' => Pages\EditTag::route('/{record}/edit'),
         ];
     }
 }

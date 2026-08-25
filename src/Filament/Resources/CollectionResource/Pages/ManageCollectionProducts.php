@@ -2,14 +2,10 @@
 
 namespace Lunar\Admin\Filament\Resources\CollectionResource\Pages;
 
-use Filament\Actions\AttachAction;
-use Filament\Actions\DetachAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
-use Filament\Schemas\Schema;
+use Filament\Forms;
+use Filament\Forms\Form;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -53,14 +49,14 @@ class ManageCollectionProducts extends BaseManageRelatedRecords
         return __('lunarpanel::collection.pages.products.label');
     }
 
-    public function form(Schema $schema): Schema
+    public function form(Form $form): Form
     {
-        return $schema->components([
-            TextColumn::make('foo'),
+        return $form->schema([
+            Tables\Columns\TextColumn::make('foo'),
         ]);
     }
 
-    public function reorderTable(array $order, string|int|null $draggedRecordKey = null): void
+    public function reorderTable(array $order): void
     {
         parent::reorderTable($order);
 
@@ -71,41 +67,36 @@ class ManageCollectionProducts extends BaseManageRelatedRecords
 
     public function table(Table $table): Table
     {
-        return parent::table($table);
-    }
-
-    protected function getDefaultTable(Table $table): Table
-    {
         return $table->columns([
 
-            SpatieMediaLibraryImageColumn::make('thumbnail')
+            Tables\Columns\SpatieMediaLibraryImageColumn::make('thumbnail')
                 ->collection(config('lunar.media.collection'))
                 ->conversion('small')
                 ->limit(1)
                 ->square()
                 ->label(''),
-            TextColumn::make('attribute_data.name')
+            Tables\Columns\TextColumn::make('attribute_data.name')
                 ->formatStateUsing(fn (Model $record): string => $record->translateAttribute('name'))
                 ->label(__('lunarpanel::product.table.name.label')),
-        ])->recordActions([
-            DetachAction::make()->after(
+        ])->actions([
+            Tables\Actions\DetachAction::make()->after(
                 fn () => CollectionProductDetached::dispatch($this->getOwnerRecord())
             ),
-            EditAction::make()->url(
+            Tables\Actions\EditAction::make()->url(
                 fn (Model $record) => ProductResource::getUrl('edit', [
                     'record' => $record,
                 ])
             ),
         ])->headerActions([
-            AttachAction::make()
+            Tables\Actions\AttachAction::make()
                 ->label(
                     __('lunarpanel::collection.pages.products.actions.attach.label')
                 )->form([
-                    Select::make('recordId')
+                    Forms\Components\Select::make('recordId')
                         ->label('Product')
                         ->required()
                         ->searchable(true)
-                        ->getSearchResultsUsing(static function (Select $component, string $search, ManageCollectionProducts $livewire): array {
+                        ->getSearchResultsUsing(static function (Forms\Components\Select $component, string $search, ManageCollectionProducts $livewire): array {
                             $relationModel = $livewire->getRelationship()->getRelated()::class;
 
                             return get_search_builder($relationModel, $search)
@@ -115,9 +106,8 @@ class ManageCollectionProducts extends BaseManageRelatedRecords
                                 )
                                 ->mapWithKeys(fn (ProductContract $record): array => [$record->getKey() => $record->translateAttribute('name')])
                                 ->all();
-                        })
-                        ->getOptionLabelUsing(fn ($value): ?string => Product::modelClass()::find($value)?->translateAttribute('name')),
-                ])->action(function (array $arguments, array $data, Schema $schema, Table $table) {
+                        }),
+                ])->action(function (array $arguments, array $data, Form $form, Table $table) {
                     $relationship = Relation::noConstraints(fn () => $table->getRelationship());
 
                     $product = Product::find($data['recordId']);

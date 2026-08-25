@@ -2,7 +2,7 @@
 
 namespace Lunar\Admin\Filament\Resources\ProductResource\Pages;
 
-use Filament\Schemas\Schema;
+use Filament\Forms\Form;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
@@ -39,7 +39,7 @@ class ManageProductInventory extends BaseEditRecord
 
     public static function shouldRegisterNavigation(array $parameters = []): bool
     {
-        return ($parameters['record']->variants_count ?? $parameters['record']->variants()->count()) == 1;
+        return $parameters['record']->variants()->withTrashed()->count() == 1;
     }
 
     public function getBreadcrumb(): string
@@ -82,7 +82,7 @@ class ManageProductInventory extends BaseEditRecord
 
     protected function getVariant(): ProductVariantContract
     {
-        return $this->getRecord()->variants()->first();
+        return $this->getRecord()->variants()->withTrashed()->first();
     }
 
     protected function getFormActions(): array
@@ -92,9 +92,9 @@ class ManageProductInventory extends BaseEditRecord
         ];
     }
 
-    public function getDefaultForm(Schema $schema): Schema
+    public function getDefaultForm(Form $form): Form
     {
-        return (new ManageVariantInventory)->form($schema)->statePath('');
+        return (new ManageVariantInventory)->form($form)->statePath('');
     }
 
     public function getRelationManagers(): array

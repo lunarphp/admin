@@ -245,8 +245,6 @@ return [
             'notification' => 'Statut des commandes mis à jour',
         ],
         'update_status' => [
-            'label' => 'Update Status',
-            'notification' => 'Order status updated',
             'new_status' => [
                 'label' => 'Nouveau statut',
             ],

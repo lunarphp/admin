@@ -2,7 +2,7 @@
 
 namespace Lunar\Admin\Filament\Resources\ChannelResource\Pages;
 
-use Filament\Actions\DeleteAction;
+use Filament\Actions;
 use Lunar\Admin\Filament\Resources\ChannelResource;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
 
@@ -13,7 +13,7 @@ class EditChannel extends BaseEditRecord
     protected function getDefaultHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
 

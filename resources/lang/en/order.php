@@ -245,8 +245,6 @@ return [
             'notification' => 'Orders status updated',
         ],
         'update_status' => [
-            'label' => 'Update Status',
-            'notification' => 'Order status updated',
             'new_status' => [
                 'label' => 'New status',
             ],

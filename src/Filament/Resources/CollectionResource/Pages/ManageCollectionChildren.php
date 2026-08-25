@@ -2,10 +2,9 @@
 
 namespace Lunar\Admin\Filament\Resources\CollectionResource\Pages;
 
-use Filament\Actions\ViewAction;
-use Filament\Schemas\Schema;
+use Filament\Forms\Form;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
@@ -51,32 +50,27 @@ class ManageCollectionChildren extends BaseManageRelatedRecords
         return __('lunarpanel::collection.pages.children.label');
     }
 
-    public function form(Schema $schema): Schema
+    public function form(Form $form): Form
     {
-        return $schema;
+        return $form;
     }
 
     public function table(Table $table): Table
     {
-        return parent::table($table);
-    }
-
-    protected function getDefaultTable(Table $table): Table
-    {
         $record = $this->getOwnerRecord();
 
         return $table->columns([
-            TextColumn::make('attribute_data.name')
+            Tables\Columns\TextColumn::make('attribute_data.name')
                 ->label(
                     __('lunarpanel::collection.pages.children.table.name.label')
                 )
                 ->formatStateUsing(fn (Model $record): string => $record->attr('name')),
-            TextColumn::make('children_count')->counts('children')
+            Tables\Columns\TextColumn::make('children_count')->counts('children')
                 ->label(
                     __('lunarpanel::collection.pages.children.table.children_count.label')
                 ),
-        ])->recordActions([
-            ViewAction::make()->url(function (Model $record) {
+        ])->actions([
+            Tables\Actions\ViewAction::make()->url(function (Model $record) {
                 return CollectionResource::getUrl('edit', ['record' => $record]);
             }),
         ])->headerActions([

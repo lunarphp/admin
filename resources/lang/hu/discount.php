@@ -1,7 +1,5 @@
 <?php
 
-use Lunar\Models\Discount;
-
 return [
     'plural_label' => 'Kedvezmények',
     'label' => 'Kedvezmény',
@@ -89,16 +87,16 @@ return [
         ],
         'status' => [
             'label' => 'Státusz',
-            Discount::ACTIVE => [
+            \Lunar\Models\Discount::ACTIVE => [
                 'label' => 'Aktív',
             ],
-            Discount::PENDING => [
+            \Lunar\Models\Discount::PENDING => [
                 'label' => 'Függőben',
             ],
-            Discount::EXPIRED => [
+            \Lunar\Models\Discount::EXPIRED => [
                 'label' => 'Lejárt',
             ],
-            Discount::SCHEDULED => [
+            \Lunar\Models\Discount::SCHEDULED => [
                 'label' => 'Ütemezett',
             ],
         ],

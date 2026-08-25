@@ -2,10 +2,8 @@
 
 namespace Lunar\Admin\Filament\Resources\CustomerResource\Pages;
 
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
+use Filament\Actions;
 use Lunar\Admin\Filament\Resources\CustomerResource;
-use Lunar\Admin\Filament\Resources\CustomerResource\Widgets\CustomerStatsOverviewWidget;
 use Lunar\Admin\Support\Pages\BaseViewRecord;
 
 class ViewCustomer extends BaseViewRecord
@@ -25,15 +23,14 @@ class ViewCustomer extends BaseViewRecord
     protected function getDefaultHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
-            EditAction::make(),
+            Actions\EditAction::make(),
         ];
     }
 
     protected function getDefaultHeaderWidgets(): array
     {
         return [
-            CustomerStatsOverviewWidget::class,
+            CustomerResource\Widgets\CustomerStatsOverviewWidget::class,
         ];
     }
 }

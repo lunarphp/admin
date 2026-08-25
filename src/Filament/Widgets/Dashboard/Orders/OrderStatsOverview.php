@@ -3,7 +3,6 @@
 namespace Lunar\Admin\Filament\Widgets\Dashboard\Orders;
 
 use Carbon\CarbonInterface;
-use DateTime;
 use Filament\Support\Facades\FilamentIcon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -12,9 +11,9 @@ use Lunar\Models\Order;
 
 class OrderStatsOverview extends BaseWidget
 {
-    protected ?string $pollingInterval = '60s';
+    protected static ?string $pollingInterval = '60s';
 
-    protected function getOrderQuery(DateTime|CarbonInterface|null $from = null, DateTime|CarbonInterface|null $to = null)
+    protected function getOrderQuery(\DateTime|CarbonInterface|null $from = null, \DateTime|CarbonInterface|null $to = null)
     {
         return Order::whereNotNull('placed_at')
             ->whereBetween('placed_at', [

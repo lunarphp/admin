@@ -8,13 +8,11 @@ return [
 
     'status' => [
         'unpublished' => [
-            'content' => 'Derzeit im Entwurfsstatus, dieses Produkt ist in allen Kanälen und Kundengruppen nicht verfügbar.',
+            'content' => 'Derzeit im Entwurfsstatus, dieses Produkt ist in allen Kanälen und Kundengruppen verborgen.',
         ],
         'availability' => [
             'customer_groups' => 'Dieses Produkt ist derzeit für alle Kundengruppen nicht verfügbar.',
             'channels' => 'Dieses Produkt ist derzeit für alle Kanäle nicht verfügbar.',
-            'hidden_from_guests' => 'Gäste können dieses Produkt derzeit weder sehen noch kaufen. Die Standard-Kundengruppe ist dafür nicht aktiviert oder sichtbar.',
-            'no_default_customer_group' => 'Es ist keine Standard-Kundengruppe festgelegt, daher kann die Sichtbarkeit für Gäste hier nicht gesteuert werden. Markieren Sie eine Kundengruppe als Standard, um den Gastzugriff zu steuern.',
         ],
     ],
 
@@ -117,7 +115,6 @@ return [
         ],
         'collections' => [
             'label' => 'Sammlungen',
-            'select_collection' => 'Select a collection',
         ],
         'associations' => [
             'label' => 'Produktverknüpfungen',

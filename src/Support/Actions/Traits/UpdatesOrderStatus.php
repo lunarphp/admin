@@ -2,13 +2,8 @@
 
 namespace Lunar\Admin\Support\Actions\Traits;
 
-use Filament\Forms\Components\CheckboxList;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms;
 use Filament\Notifications\Notification;
-use Filament\Schemas\Components\Group;
-use Filament\Schemas\Components\Utilities\Get;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -16,20 +11,20 @@ use Lunar\Models\Order;
 
 trait UpdatesOrderStatus
 {
-    protected static function getAdditionalContentInput(): Textarea
+    protected static function getAdditionalContentInput(): Forms\Components\Textarea
     {
-        return Textarea::make('additional_content')
+        return Forms\Components\Textarea::make('additional_content')
             ->label(__('lunarpanel::order.action.update_status.additional_content.label'))
-            ->hidden(function (Get $get) {
+            ->hidden(function (Forms\Get $get) {
                 return ! count(
                     static::getMailers($get('status'))
                 );
             });
     }
 
-    protected static function getStatusSelectInput(): Select
+    protected static function getStatusSelectInput(): Forms\Components\Select
     {
-        return Select::make('status')
+        return Forms\Components\Select::make('status')
             ->label(__('lunarpanel::order.action.update_status.new_status.label'))
             ->default(fn ($record) => $record?->status)
             ->options(fn () => collect(config('lunar.orders.statuses', []))
@@ -38,10 +33,10 @@ trait UpdatesOrderStatus
             ->live();
     }
 
-    protected static function getEmailAddressesInput(): CheckboxList
+    protected static function getEmailAddressesInput(): Forms\Components\CheckboxList
     {
-        return CheckboxList::make('email_addresses')
-            ->hidden(function (Get $get, ?Order $record = null) {
+        return Forms\Components\CheckboxList::make('email_addresses')
+            ->hidden(function (Forms\Get $get, ?Order $record = null) {
 
                 if (! $record) {
                     return true;
@@ -49,7 +44,7 @@ trait UpdatesOrderStatus
 
                 return ! count($get('mailers') ?: [])
                     || ! ($record?->billingAddress?->contact_email || $record->shippingAddress?->contact_email);
-            })->afterStateHydrated(function (?Order $record, CheckboxList $component) {
+            })->afterStateHydrated(function (?Order $record, Forms\Components\CheckboxList $component) {
                 $emails = collect([
                     $record?->billingAddress?->contact_email,
                     $record?->shippingAddress?->contact_email,
@@ -68,21 +63,21 @@ trait UpdatesOrderStatus
             });
     }
 
-    protected static function getAdditionalEmailInput(): TextInput
+    protected static function getAdditionalEmailInput(): Forms\Components\TextInput
     {
-        return TextInput::make('additional_email')
+        return Forms\Components\TextInput::make('additional_email')
             ->label(__('lunarpanel::order.action.update_status.additional_email_recipient.label'))
             ->placeholder(__('lunarpanel::order.action.update_status.additional_email_recipient.placeholder'))
-            ->hidden(function (Get $get) {
+            ->hidden(function (Forms\Get $get) {
                 return ! count(
                     static::getMailers($get('status'))
                 );
             });
     }
 
-    protected static function getMailersCheckboxInput(): CheckboxList
+    protected static function getMailersCheckboxInput(): Forms\Components\CheckboxList
     {
-        return CheckboxList::make('mailers')->options(function (Get $get) {
+        return Forms\Components\CheckboxList::make('mailers')->options(function (Forms\Get $get) {
             $mailers = config('lunar.orders.statuses.'.$get('status').'.mailers', []);
 
             return collect($mailers)->mapWithKeys(function ($mailer) {
@@ -92,7 +87,7 @@ trait UpdatesOrderStatus
                     ),
                 ];
             });
-        })->hidden(function (Get $get) {
+        })->hidden(function (Forms\Get $get) {
             return ! count(
                 static::getMailers($get('status'))
             );
@@ -103,19 +98,19 @@ trait UpdatesOrderStatus
     {
         return [
             static::getStatusSelectInput(),
-            Group::make([
+            Forms\Components\Group::make([
                 static::getMailersCheckboxInput(),
-                Group::make([
+                Forms\Components\Group::make([
                     static::getAdditionalContentInput(),
                     static::getEmailAddressesInput(),
                     static::getAdditionalEmailInput(),
-                ])->hidden(function (Get $get) {
+                ])->hidden(function (Forms\Get $get) {
                     return ! count($get('mailers')) ||
                         ! count(
                             static::getMailers($get('status'))
                         );
                 }),
-            ])->hidden(function (Get $get) {
+            ])->hidden(function (Forms\Get $get) {
                 return ! count(
                     static::getMailers($get('status'))
                 );

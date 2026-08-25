@@ -2,10 +2,9 @@
 
 namespace Lunar\Admin\Support\FieldTypes;
 
+use Filament\Forms\Components\Component;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Component;
 use Lunar\Admin\Support\Synthesizers\TextSynth;
 use Lunar\Models\Attribute;
 
@@ -16,7 +15,7 @@ class TextField extends BaseFieldType
     public static function getConfigurationFields(): array
     {
         return [
-            Toggle::make('richtext')->label(
+            \Filament\Forms\Components\Toggle::make('richtext')->label(
                 __('lunarpanel::fieldtypes.text.form.richtext.label')
             ),
         ];

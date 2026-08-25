@@ -3,39 +3,20 @@
 namespace Lunar\Admin\Filament\Resources;
 
 use Awcodes\Shout\Components\Shout;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Pages\Enums\SubNavigationPosition;
+use Filament\Forms;
+use Filament\Forms\Components\Component;
+use Filament\Forms\Form;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\RelationManagers\RelationGroup;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\Column;
+use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\EditProduct;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ListProducts;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ManageProductAssociations;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ManageProductAvailability;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ManageProductCollections;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ManageProductIdentifiers;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ManageProductInventory;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ManageProductMedia;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ManageProductPricing;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ManageProductShipping;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ManageProductUrls;
-use Lunar\Admin\Filament\Resources\ProductResource\Pages\ManageProductVariants;
+use Lunar\Admin\Filament\Resources\ProductResource\Pages;
 use Lunar\Admin\Filament\Resources\ProductResource\RelationManagers\CustomerGroupPricingRelationManager;
 use Lunar\Admin\Filament\Resources\ProductResource\RelationManagers\CustomerGroupRelationManager;
 use Lunar\Admin\Filament\Resources\ProductResource\Widgets\ProductOptionsWidget;
@@ -53,7 +34,6 @@ use Lunar\FieldTypes\TranslatedText;
 use Lunar\Models\Attribute;
 use Lunar\Models\Contracts\Product as ProductContract;
 use Lunar\Models\Currency;
-use Lunar\Models\CustomerGroup;
 use Lunar\Models\ProductVariant;
 use Lunar\Models\Tag;
 
@@ -69,7 +49,7 @@ class ProductResource extends BaseResource
 
     protected static int $globalSearchResultsLimit = 5;
 
-    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::End;
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::End;
 
     public static function getLabel(): string
     {
@@ -94,17 +74,17 @@ class ProductResource extends BaseResource
     public static function getDefaultSubNavigation(): array
     {
         return [
-            EditProduct::class,
-            ManageProductAvailability::class,
-            ManageProductMedia::class,
-            ManageProductPricing::class,
-            ManageProductIdentifiers::class,
-            ManageProductInventory::class,
-            ManageProductShipping::class,
-            ManageProductVariants::class,
-            ManageProductUrls::class,
-            ManageProductCollections::class,
-            ManageProductAssociations::class,
+            Pages\EditProduct::class,
+            Pages\ManageProductAvailability::class,
+            Pages\ManageProductMedia::class,
+            Pages\ManageProductPricing::class,
+            Pages\ManageProductIdentifiers::class,
+            Pages\ManageProductInventory::class,
+            Pages\ManageProductShipping::class,
+            Pages\ManageProductVariants::class,
+            Pages\ManageProductUrls::class,
+            Pages\ManageProductCollections::class,
+            Pages\ManageProductAssociations::class,
         ];
     }
 
@@ -116,62 +96,29 @@ class ProductResource extends BaseResource
         ];
     }
 
-    protected static function isPublished(?Model $record): bool
+    public static function getDefaultForm(Form $form): Form
     {
-        return $record?->status === 'published';
-    }
-
-    protected static function hasEnabledCustomerGroup(Model $record): bool
-    {
-        return $record->customerGroups()->where('enabled', true)->exists();
-    }
-
-    protected static function isDefaultGroupVisibleToGuests(Model $record): bool
-    {
-        $default = CustomerGroup::modelClass()::getDefault();
-
-        return $default && $record->newQuery()
-            ->whereKey($record->getKey())
-            ->customerGroup($default)
-            ->exists();
-    }
-
-    public static function getDefaultForm(Schema $schema): Schema
-    {
-        return $schema
-            ->components([
+        return $form
+            ->schema([
                 Shout::make('product-status')
                     ->content(
                         __('lunarpanel::product.status.unpublished.content')
                     )->type('info')->hidden(
-                        fn (Model $record) => static::isPublished($record)
+                        fn (Model $record) => $record?->status == 'published'
                     ),
                 Shout::make('product-customer-groups')
                     ->content(
                         __('lunarpanel::product.status.availability.customer_groups')
-                    )->type('warning')->hidden(fn (Model $record) => ! static::isPublished($record) || static::hasEnabledCustomerGroup($record)
-                    ),
-                Shout::make('product-no-default-customer-group')
-                    ->content(
-                        __('lunarpanel::product.status.availability.no_default_customer_group')
-                    )->type('warning')->hidden(fn (Model $record) => ! static::isPublished($record)
-                        || ! static::hasEnabledCustomerGroup($record)
-                        || (bool) CustomerGroup::modelClass()::getDefault()
-                    ),
-                Shout::make('product-hidden-from-guests')
-                    ->content(
-                        __('lunarpanel::product.status.availability.hidden_from_guests')
-                    )->type('warning')->hidden(fn (Model $record) => ! static::isPublished($record)
-                        || ! static::hasEnabledCustomerGroup($record)
-                        || ! CustomerGroup::modelClass()::getDefault()
-                        || static::isDefaultGroupVisibleToGuests($record)
-                    ),
+                    )->type('warning')->hidden(function (Model $record) {
+                        return $record->customerGroups()->where('enabled', true)->count();
+                    }),
                 Shout::make('product-channels')
                     ->content(
                         __('lunarpanel::product.status.availability.channels')
-                    )->type('warning')->hidden(fn (Model $record) => ! static::isPublished($record) || $record->channels()->where('enabled', true)->count()
-                    ),
-                Section::make()
+                    )->type('warning')->hidden(function (Model $record) {
+                        return $record->channels()->where('enabled', true)->count();
+                    }),
+                Forms\Components\Section::make()
                     ->schema(
                         static::getMainFormComponents(),
                     ),
@@ -202,7 +149,7 @@ class ProductResource extends BaseResource
     {
         $validation = static::getSkuValidation();
 
-        $input = TextInput::make('sku')
+        $input = Forms\Components\TextInput::make('sku')
             ->label(__('lunarpanel::product.form.sku.label'))
             ->required($validation['required'] ?? false);
 
@@ -217,7 +164,7 @@ class ProductResource extends BaseResource
     {
         $currency = Currency::getDefault();
 
-        return TextInput::make('base_price')->numeric()->prefix(
+        return Forms\Components\TextInput::make('base_price')->numeric()->prefix(
             $currency->code
         )->rules([
             'min:'.(1 / $currency->factor),
@@ -236,7 +183,7 @@ class ProductResource extends BaseResource
         $component = TranslatedTextInput::make('name');
 
         if ($nameType == Text::class) {
-            $component = TextInput::make('name');
+            $component = Forms\Components\TextInput::make('name');
         }
 
         return $component->label(__('lunarpanel::product.form.name.label'))->required();
@@ -244,20 +191,20 @@ class ProductResource extends BaseResource
 
     protected static function getBrandFormComponent(): Component
     {
-        return Select::make('brand_id')
+        return Forms\Components\Select::make('brand_id')
             ->label(__('lunarpanel::product.form.brand.label'))
             ->relationship('brand', 'name')
             ->searchable()
             ->preload()
             ->createOptionForm([
-                TextInput::make('name')
+                Forms\Components\TextInput::make('name')
                     ->required(),
             ]);
     }
 
     public static function getProductTypeFormComponent(): Component
     {
-        return Select::make('product_type_id')
+        return Forms\Components\Select::make('product_type_id')
             ->label(__('lunarpanel::product.form.producttype.label'))
             ->relationship('productType', 'name')
             ->searchable()
@@ -293,17 +240,17 @@ class ProductResource extends BaseResource
         return $table
             ->columns(static::getTableColumns())
             ->filters([
-                SelectFilter::make('brand')
+                Tables\Filters\SelectFilter::make('brand')
                     ->label(__('lunarpanel::product.table.brand.label'))
                     ->relationship('brand', 'name'),
-                TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make(),
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->actions([
+                Tables\Actions\EditAction::make(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
             ->selectCurrentPageOnly()
@@ -313,7 +260,7 @@ class ProductResource extends BaseResource
     public static function getTableColumns(): array
     {
         return [
-            TextColumn::make('status')
+            Tables\Columns\TextColumn::make('status')
                 ->label(__('lunarpanel::product.table.status.label'))
                 ->badge()
                 ->getStateUsing(
@@ -334,18 +281,18 @@ class ProductResource extends BaseResource
                 ->square()
                 ->label(''),
             static::getNameTableColumn(),
-            TextColumn::make('brand.name')
+            Tables\Columns\TextColumn::make('brand.name')
                 ->label(__('lunarpanel::product.table.brand.label'))
                 ->toggleable()
                 ->searchable(),
             static::getSkuTableColumn(),
-            TextColumn::make('variants_sum_stock')
+            Tables\Columns\TextColumn::make('variants_sum_stock')
                 ->label(__('lunarpanel::product.table.stock.label'))
                 ->sum('variants', 'stock'),
-            TextColumn::make('productType.name')
+            Tables\Columns\TextColumn::make('productType.name')
                 ->label(__('lunarpanel::product.table.producttype.label'))
                 ->limit(30)
-                ->tooltip(function (TextColumn $column): ?string {
+                ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
                     $state = $column->getState();
 
                     if (strlen($state) <= $column->getCharacterLimit()) {
@@ -359,7 +306,7 @@ class ProductResource extends BaseResource
         ];
     }
 
-    public static function getNameTableColumn(): Column
+    public static function getNameTableColumn(): Tables\Columns\Column
     {
         return TranslatedTextColumn::make('attribute_data.name')
             ->attributeData()
@@ -369,11 +316,11 @@ class ProductResource extends BaseResource
             ->searchable();
     }
 
-    public static function getSkuTableColumn(): Column
+    public static function getSkuTableColumn(): Tables\Columns\Column
     {
-        return TextColumn::make('variants.sku')
+        return Tables\Columns\TextColumn::make('variants.sku')
             ->label(__('lunarpanel::product.table.sku.label'))
-            ->tooltip(function (TextColumn $column, Model $record): ?string {
+            ->tooltip(function (Tables\Columns\TextColumn $column, Model $record): ?string {
 
                 if ($record->variants->count() <= $column->getListLimit()) {
                     return null;
@@ -409,18 +356,18 @@ class ProductResource extends BaseResource
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListProducts::route('/'),
-            'edit' => EditProduct::route('/{record}/edit'),
-            'availability' => ManageProductAvailability::route('/{record}/availability'),
-            'identifiers' => ManageProductIdentifiers::route('/{record}/identifiers'),
-            'media' => ManageProductMedia::route('/{record}/media'),
-            'pricing' => ManageProductPricing::route('/{record}/pricing'),
-            'inventory' => ManageProductInventory::route('/{record}/inventory'),
-            'shipping' => ManageProductShipping::route('/{record}/shipping'),
-            'variants' => ManageProductVariants::route('/{record}/variants'),
-            'urls' => ManageProductUrls::route('/{record}/urls'),
-            'collections' => ManageProductCollections::route('/{record}/collections'),
-            'associations' => ManageProductAssociations::route('/{record}/associations'),
+            'index' => Pages\ListProducts::route('/'),
+            'edit' => Pages\EditProduct::route('/{record}/edit'),
+            'availability' => Pages\ManageProductAvailability::route('/{record}/availability'),
+            'identifiers' => Pages\ManageProductIdentifiers::route('/{record}/identifiers'),
+            'media' => Pages\ManageProductMedia::route('/{record}/media'),
+            'pricing' => Pages\ManageProductPricing::route('/{record}/pricing'),
+            'inventory' => Pages\ManageProductInventory::route('/{record}/inventory'),
+            'shipping' => Pages\ManageProductShipping::route('/{record}/shipping'),
+            'variants' => Pages\ManageProductVariants::route('/{record}/variants'),
+            'urls' => Pages\ManageProductUrls::route('/{record}/urls'),
+            'collections' => Pages\ManageProductCollections::route('/{record}/collections'),
+            'associations' => Pages\ManageProductAssociations::route('/{record}/associations'),
         ];
     }
 
@@ -440,7 +387,6 @@ class ProductResource extends BaseResource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withCount('variants')
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);

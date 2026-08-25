@@ -2,14 +2,10 @@
 
 namespace Lunar\Admin\Filament\Resources\OrderResource\Concerns;
 
-use Filament\Actions\Action;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
+use Filament\Forms;
+use Filament\Infolists;
+use Filament\Infolists\Components\Actions\Action;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\FontWeight;
 use Illuminate\Support\Arr;
@@ -20,22 +16,22 @@ use Lunar\Models\State;
 
 trait DisplaysOrderAddresses
 {
-    public static function getDefaultShippingAddressInfoList(): Component
+    public static function getDefaultShippingAddressInfoList(): Infolists\Components\Component
     {
         return self::getOrderAddressInfolistSchema('shipping');
     }
 
-    public static function getShippingAddressInfolist(): Component
+    public static function getShippingAddressInfolist(): Infolists\Components\Component
     {
         return self::callStaticLunarHook('extendShippingAddressInfolist', static::getDefaultShippingAddressInfoList());
     }
 
-    public static function getDefaultBillingAddressInfoList(): Component
+    public static function getDefaultBillingAddressInfoList(): Infolists\Components\Component
     {
         return self::getOrderAddressInfolistSchema('billing');
     }
 
-    public static function getBillingAddressInfoList(): Component
+    public static function getBillingAddressInfoList(): Infolists\Components\Component
     {
         return self::callStaticLunarHook('extendBillingAddressInfolist', static::getDefaultBillingAddressInfoList());
     }
@@ -43,71 +39,71 @@ trait DisplaysOrderAddresses
     public static function getAddressEditSchema(): array
     {
         return self::callStaticLunarHook('extendAddressEditSchema', [
-            Grid::make()
+            Forms\Components\Grid::make()
                 ->schema([
-                    TextInput::make('first_name')
+                    Forms\Components\TextInput::make('first_name')
                         ->label(__('lunarpanel::order.form.address.first_name.label'))
                         ->autocomplete(false)
                         ->maxLength(255)
                         ->required(),
-                    TextInput::make('last_name')
+                    Forms\Components\TextInput::make('last_name')
                         ->label(__('lunarpanel::order.form.address.last_name.label'))
                         ->autocomplete(false)
                         ->maxLength(255),
                 ]),
-            TextInput::make('company_name')
+            Forms\Components\TextInput::make('company_name')
                 ->label(__('lunarpanel::order.form.address.company_name.label'))
                 ->autocomplete(false)
                 ->maxLength(255),
-            TextInput::make('tax_identifier')
+            Forms\Components\TextInput::make('tax_identifier')
                 ->label(__('lunarpanel::order.form.address.tax_identifier.label'))
                 ->autocomplete(false)
                 ->maxLength(255),
-            Grid::make()
+            Forms\Components\Grid::make()
                 ->schema([
-                    TextInput::make('contact_phone')
+                    Forms\Components\TextInput::make('contact_phone')
                         ->label(__('lunarpanel::order.form.address.contact_phone.label'))
                         ->autocomplete(false)
                         ->maxLength(255),
-                    TextInput::make('contact_email')
+                    Forms\Components\TextInput::make('contact_email')
                         ->label(__('lunarpanel::order.form.address.contact_email.label'))
                         ->autocomplete(false)
                         ->maxLength(255),
                 ]),
-            TextInput::make('line_one')
+            Forms\Components\TextInput::make('line_one')
                 ->label(__('lunarpanel::order.form.address.line_one.label'))
                 ->autocomplete(false)
                 ->maxLength(255)
                 ->required(),
-            Grid::make()
+            Forms\Components\Grid::make()
                 ->schema([
-                    TextInput::make('line_two')
+                    Forms\Components\TextInput::make('line_two')
                         ->label(__('lunarpanel::order.form.address.line_two.label'))
                         ->autocomplete(false)
                         ->maxLength(255),
-                    TextInput::make('line_three')
+                    Forms\Components\TextInput::make('line_three')
                         ->label(__('lunarpanel::order.form.address.line_three.label'))
                         ->autocomplete(false)
                         ->maxLength(255),
                 ]),
-            Grid::make(3)
+            Forms\Components\Grid::make(3)
                 ->schema([
-                    TextInput::make('city')
+                    Forms\Components\TextInput::make('city')
                         ->label(__('lunarpanel::order.form.address.city.label'))
                         ->maxLength(255)
                         ->autocomplete(false)
                         ->required(),
-                    TextInput::make('state')
+                    Forms\Components\TextInput::make('state')
                         ->label(__('lunarpanel::order.form.address.state.label'))
                         ->autocomplete('state') // to disable browser input history while keeping datalist
                         ->datalist(fn ($get) => State::whereCountryId($get('country_id'))->pluck('name')->toArray())
                         ->maxLength(255),
-                    TextInput::make('postcode')
+                    Forms\Components\TextInput::make('postcode')
                         ->label(__('lunarpanel::order.form.address.postcode.label'))
                         ->autocomplete(false)
                         ->maxLength(255),
                 ]),
-            Select::make('country_id')
+            Forms\Components\Select::make('country_id')
                 ->label(__('lunarpanel::order.form.address.country_id.label'))
                 ->options(fn () => Country::get()->pluck('name', 'id'))
                 ->live()
@@ -116,7 +112,7 @@ trait DisplaysOrderAddresses
         ]);
     }
 
-    public static function getOrderAddressInfolistSchema(string $type): Section
+    public static function getOrderAddressInfolistSchema(string $type): Infolists\Components\Section
     {
         $sameAsShipping = fn ($record) => $type == 'billing' && static::addressesMatch($record->shippingAddress, $record->billingAddress);
 
@@ -125,20 +121,20 @@ trait DisplaysOrderAddresses
             default => $record->shippingAddress,
         };
 
-        return Section::make(__("lunarpanel::order.infolist.{$type}_address.label"))
+        return Infolists\Components\Section::make(__("lunarpanel::order.infolist.{$type}_address.label"))
             ->statePath($type.'Address')
             ->compact()
             ->headerActions([
                 fn ($record) => static::getEditAddressAction($type)->hidden($sameAsShipping($record)),
             ])
             ->schema(fn ($record) => $sameAsShipping($record) ? [
-                TextEntry::make('billing_matches_shipping')
+                Infolists\Components\TextEntry::make('billing_matches_shipping')
                     ->hiddenLabel()
                     ->weight(FontWeight::SemiBold)
                     ->getStateUsing(fn () => __('lunarpanel::order.infolist.billing_matches_shipping.label')),
 
             ] : [
-                TextEntry::make($type.'_address')
+                Infolists\Components\TextEntry::make($type.'_address')
                     ->hiddenLabel()
                     ->listWithLineBreaks()
                     ->getStateUsing(function ($record) use ($getAddress) {
@@ -165,14 +161,14 @@ trait DisplaysOrderAddresses
                             return __('lunarpanel::order.infolist.address_not_set.label');
                         }
                     }),
-                TextEntry::make($type.'_phone')
+                Infolists\Components\TextEntry::make($type.'_phone')
                     ->hiddenLabel()
                     ->icon('heroicon-o-phone')
                     ->getStateUsing(fn ($record) => $getAddress($record)?->contact_phone ?? '-')
                     ->url(fn ($state) => $state !== '-' ? 'tel:'.$state : false)
                     ->color(fn ($state) => $state !== '-' ? Color::Sky : null)
                     ->iconColor(fn ($state) => $state !== '-' ? Color::Green : null),
-                TextEntry::make($type.'_email')
+                Infolists\Components\TextEntry::make($type.'_email')
                     ->hiddenLabel()
                     ->icon('heroicon-o-envelope')
                     ->getStateUsing(fn ($record) => $getAddress($record)?->contact_email ?? '-')
@@ -216,7 +212,7 @@ trait DisplaysOrderAddresses
                 'billing' => $record->billingAddress?->toArray() ?: [],
                 default => []
             })
-            ->schema(function () {
+            ->form(function () {
                 return static::getAddressEditSchema();
             })
             ->action(function (Action $action, $record, $data) use ($type) {

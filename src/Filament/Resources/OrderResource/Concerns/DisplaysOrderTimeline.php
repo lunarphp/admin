@@ -2,20 +2,19 @@
 
 namespace Lunar\Admin\Filament\Resources\OrderResource\Concerns;
 
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Grid;
+use Filament\Infolists;
 use Lunar\Admin\Support\Infolists\Components\Timeline;
 
 trait DisplaysOrderTimeline
 {
-    public static function getTimelineInfolist(): Component
+    public static function getTimelineInfolist(): Infolists\Components\Component
     {
         return self::callStaticLunarHook('extendTimelineInfolist', static::getDefaultTimelineInfolist());
     }
 
-    public static function getDefaultTimelineInfolist(): Component
+    public static function getDefaultTimelineInfolist(): Infolists\Components\Component
     {
-        return Grid::make()
+        return Infolists\Components\Grid::make()
             ->schema([
                 Timeline::make('timeline')
                     ->label(__('lunarpanel::order.infolist.timeline.label')),

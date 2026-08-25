@@ -2,7 +2,7 @@
 
 namespace Lunar\Admin\Filament\Resources\StaffResource\Pages;
 
-use Filament\Actions\DeleteAction;
+use Filament\Actions;
 use Lunar\Admin\Filament\Resources\StaffResource;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
 
@@ -13,7 +13,7 @@ class EditStaff extends BaseEditRecord
     protected function getDefaultHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
 }

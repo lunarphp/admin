@@ -67,12 +67,6 @@ return [
             'max_files' => [
                 'label' => 'Max. fájlok száma',
             ],
-            'disk' => [
-                'label' => 'Lemez',
-            ],
-            'directory' => [
-                'label' => 'Könyvtár',
-            ],
         ],
     ],
 ];

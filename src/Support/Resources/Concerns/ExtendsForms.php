@@ -2,19 +2,19 @@
 
 namespace Lunar\Admin\Support\Resources\Concerns;
 
-use Filament\Schemas\Schema;
+use Filament\Forms\Form;
 
 trait ExtendsForms
 {
-    public static function form(Schema $schema): Schema
+    public static function form(Form $form): Form
     {
-        return self::callStaticLunarHook('extendForm', static::getDefaultForm($schema));
+        return self::callStaticLunarHook('extendForm', static::getDefaultForm($form));
     }
 
-    public static function getDefaultForm(Schema $schema): Schema
+    public static function getDefaultForm(Form $form): Form
     {
-        return $schema
-            ->components(static::getMainFormComponents());
+        return $form
+            ->schema(static::getMainFormComponents());
     }
 
     protected static function getMainFormComponents(): array

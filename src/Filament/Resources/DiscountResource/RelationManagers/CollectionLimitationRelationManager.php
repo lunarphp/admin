@@ -2,11 +2,8 @@
 
 namespace Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers;
 
-use Filament\Actions\AttachAction;
-use Filament\Actions\DetachAction;
-use Filament\Actions\DetachBulkAction;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Support\RelationManagers\BaseRelationManager;
@@ -41,7 +38,7 @@ class CollectionLimitationRelationManager extends BaseRelationManager
             )
             ->paginated(false)
             ->headerActions([
-                AttachAction::make()->form(fn (AttachAction $action): array => [
+                Tables\Actions\AttachAction::make()->form(fn (Tables\Actions\AttachAction $action): array => [
                     $action->getRecordSelect(),
                     Select::make('type')
                         ->options(
@@ -58,7 +55,7 @@ class CollectionLimitationRelationManager extends BaseRelationManager
                         __('lunarpanel::discount.relationmanagers.collections.actions.attach.label')
                     ),
             ])->columns([
-                TextColumn::make('attribute_data.name')
+                Tables\Columns\TextColumn::make('attribute_data.name')
                     ->label(
                         __('lunarpanel::discount.relationmanagers.collections.table.name.label')
                     )
@@ -66,16 +63,16 @@ class CollectionLimitationRelationManager extends BaseRelationManager
                     ->formatStateUsing(
                         fn (Model $record) => $record->attr('name')
                     ),
-                TextColumn::make('pivot.type')
+                Tables\Columns\TextColumn::make('pivot.type')
                     ->label(
                         __('lunarpanel::discount.relationmanagers.collections.table.type.label')
                     )->formatStateUsing(
                         fn (string $state) => __("lunarpanel::discount.relationmanagers.collections.table.type.{$state}.label")
                     ),
-            ])->recordActions([
-                DetachAction::make(),
-            ])->toolbarActions([
-                DetachBulkAction::make(),
+            ])->actions([
+                Tables\Actions\DetachAction::make(),
+            ])->bulkActions([
+                Tables\Actions\DetachBulkAction::make(),
             ]);
     }
 }

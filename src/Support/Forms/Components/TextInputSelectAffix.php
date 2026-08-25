@@ -2,23 +2,24 @@
 
 namespace Lunar\Admin\Support\Forms\Components;
 
-use Closure;
+use Filament\Forms\ComponentContainer;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
-use RuntimeException;
+use Filament\Forms\Concerns\HasComponents;
 
 class TextInputSelectAffix extends TextInput
 {
+    use HasComponents;
+
     protected string $view = 'lunarpanel::forms.components.text-input-select-affix';
 
-    protected ?Closure $selectComponentClosure = null;
+    protected ?\Closure $selectComponentClosure = null;
 
     protected ?Select $selectComponent = null;
 
     protected string $position = 'suffix';
 
-    public function select(Closure|Select $closure): TextInputSelectAffix
+    public function select(\Closure|Select $closure): TextInputSelectAffix
     {
         if ($closure instanceof Select) {
             $this->selectComponentClosure = fn () => $closure;
@@ -63,11 +64,11 @@ class TextInputSelectAffix extends TextInput
         }
     }
 
-    public function hydrateState(?array &$hydratedDefaultState, bool $andCallHydrationHooks = true, bool $shouldApplyStateCasts = true, array &$appliedStateCastPaths = []): void
+    public function hydrateState(?array &$hydratedDefaultState, bool $andCallHydrationHooks = true): void
     {
-        parent::hydrateState($hydratedDefaultState, $andCallHydrationHooks, $shouldApplyStateCasts, $appliedStateCastPaths);
+        parent::hydrateState($hydratedDefaultState, $andCallHydrationHooks);
         if ($this->hasSelect()) {
-            $this->getSelectComponent()->hydrateState($hydratedDefaultState, $andCallHydrationHooks, $shouldApplyStateCasts, $appliedStateCastPaths);
+            $this->getSelectComponent()->hydrateState($hydratedDefaultState, $andCallHydrationHooks);
         }
     }
 
@@ -76,12 +77,12 @@ class TextInputSelectAffix extends TextInput
         return $this->position;
     }
 
-    public function getSelectComponent(): Schema
+    public function getSelectComponent(): ComponentContainer
     {
         $evaluated = $this->evaluate($this->selectComponentClosure);
 
         if (! $evaluated instanceof Select) {
-            throw new RuntimeException('Passed component must be of type Select');
+            throw new \RuntimeException('Passed component must be of type Select');
         }
 
         $this->selectComponent = $evaluated->hiddenLabel()
@@ -91,7 +92,7 @@ class TextInputSelectAffix extends TextInput
         $path = explode('.', $this->getStatePath());
         unset($path[count($path) - 1]);
 
-        return Schema::make($this->getLivewire())
+        return ComponentContainer::make($this->getLivewire())
             ->statePath(implode('.', $path))
             ->components([$this->selectComponent]);
     }

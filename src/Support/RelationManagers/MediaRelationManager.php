@@ -2,19 +2,10 @@
 
 namespace Lunar\Admin\Support\RelationManagers;
 
-use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Schema;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -35,17 +26,17 @@ class MediaRelationManager extends BaseRelationManager
         return false;
     }
 
-    public function getDefaultForm(Schema $schema): Schema
+    public function getDefaultForm(Form $form): Form
     {
-        return $schema
-            ->components([
-                TextInput::make('custom_properties.name')
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('custom_properties.name')
                     ->label(__('lunarpanel::relationmanagers.medias.form.name.label'))
                     ->maxLength(255),
-                Toggle::make('custom_properties.primary')
+                Forms\Components\Toggle::make('custom_properties.primary')
                     ->label(__('lunarpanel::relationmanagers.medias.form.primary.label'))
                     ->inline(false),
-                FileUpload::make('media')
+                Forms\Components\FileUpload::make('media')
                     ->label(__('lunarpanel::relationmanagers.medias.form.media.label'))
                     ->columnSpan(2)
                     ->hiddenOn('edit')
@@ -73,17 +64,17 @@ class MediaRelationManager extends BaseRelationManager
             ->recordTitleAttribute('name')
             ->modifyQueryUsing(fn (Builder $query) => $query->where('collection_name', $this->mediaCollection)->orderBy('order_column'))
             ->columns([
-                ImageColumn::make('image')
+                Tables\Columns\ImageColumn::make('image')
                     ->state(function (Media $record): string {
                         return $record->hasGeneratedConversion('small') ? $record->getUrl('small') : '';
                     })
                     ->label(__('lunarpanel::relationmanagers.medias.table.image.label')),
-                TextColumn::make('file_name')
+                Tables\Columns\TextColumn::make('file_name')
                     ->limit(30)
                     ->label(__('lunarpanel::relationmanagers.medias.table.file.label')),
-                TextColumn::make('custom_properties.name')
+                Tables\Columns\TextColumn::make('custom_properties.name')
                     ->label(__('lunarpanel::relationmanagers.medias.table.name.label')),
-                IconColumn::make('custom_properties.primary')
+                Tables\Columns\IconColumn::make('custom_properties.primary')
                     ->label(__('lunarpanel::relationmanagers.medias.table.primary.label'))
                     ->boolean(),
             ])
@@ -91,7 +82,7 @@ class MediaRelationManager extends BaseRelationManager
                 //
             ])
             ->headerActions([
-                CreateAction::make()
+                Tables\Actions\CreateAction::make()
                     ->label(__('lunarpanel::relationmanagers.medias.actions.create.label'))
                     ->using(function (array $data, string $model): Model {
 
@@ -111,22 +102,22 @@ class MediaRelationManager extends BaseRelationManager
                         )
                     ),
             ])
-            ->recordActions([
-                EditAction::make()->after(
+            ->actions([
+                Tables\Actions\EditAction::make()->after(
                     fn () => ModelMediaUpdated::dispatch(
                         $this->getOwnerRecord()
                     )
                 ),
-                DeleteAction::make(),
+                Tables\Actions\DeleteAction::make(),
                 Action::make('view_open')
                     ->label(__('lunarpanel::relationmanagers.medias.actions.view.label'))
                     ->icon('lucide-eye')
                     ->url(fn (Media $record): string => $record->getUrl())
                     ->openUrlInNewTab(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make()->after(
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make()->after(
                         fn () => ModelMediaUpdated::dispatch(
                             $this->getOwnerRecord()
                         )

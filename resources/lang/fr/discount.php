@@ -1,7 +1,5 @@
 <?php
 
-use Lunar\Models\Discount;
-
 return [
     'plural_label' => 'Réductions',
     'label' => 'Réduction',
@@ -89,16 +87,16 @@ return [
         ],
         'status' => [
             'label' => 'Statut',
-            Discount::ACTIVE => [
+            \Lunar\Models\Discount::ACTIVE => [
                 'label' => 'Actif',
             ],
-            Discount::PENDING => [
+            \Lunar\Models\Discount::PENDING => [
                 'label' => 'En attente',
             ],
-            Discount::EXPIRED => [
+            \Lunar\Models\Discount::EXPIRED => [
                 'label' => 'Expiré',
             ],
-            Discount::SCHEDULED => [
+            \Lunar\Models\Discount::SCHEDULED => [
                 'label' => 'Planifié',
             ],
         ],

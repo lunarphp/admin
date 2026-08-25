@@ -2,21 +2,15 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Awcodes\BadgeableColumn\Components\Badge;
-use Awcodes\BadgeableColumn\Components\BadgeableColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
+use Awcodes\FilamentBadgeableColumn\Components\Badge;
+use Awcodes\FilamentBadgeableColumn\Components\BadgeableColumn;
+use Filament\Forms;
+use Filament\Forms\Components\Component;
+use Filament\Forms\Form;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
+use Filament\Tables;
 use Illuminate\Database\Eloquent\Model;
-use Lunar\Admin\Filament\Resources\CurrencyResource\Pages\CreateCurrency;
-use Lunar\Admin\Filament\Resources\CurrencyResource\Pages\EditCurrency;
-use Lunar\Admin\Filament\Resources\CurrencyResource\Pages\ListCurrencies;
+use Lunar\Admin\Filament\Resources\CurrencyResource\Pages;
 use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\Models\Contracts\Currency as CurrencyContract;
 
@@ -48,10 +42,10 @@ class CurrencyResource extends BaseResource
         return __('lunarpanel::global.sections.settings');
     }
 
-    public static function getDefaultForm(Schema $schema): Schema
+    public static function getDefaultForm(Form $form): Form
     {
-        return $schema->components([
-            Section::make('details')->schema(
+        return $form->schema([
+            Forms\Components\Section::make('details')->schema(
                 static::getMainFormComponents()
             )->heading()->columns(),
         ]);
@@ -72,7 +66,7 @@ class CurrencyResource extends BaseResource
 
     protected static function getNameFormComponent(): Component
     {
-        return TextInput::make('name')
+        return Forms\Components\TextInput::make('name')
             ->label(__('lunarpanel::currency.form.name.label'))
             ->required()
             ->maxLength(255)
@@ -81,7 +75,7 @@ class CurrencyResource extends BaseResource
 
     protected static function getCodeFormComponent(): Component
     {
-        return TextInput::make('code')
+        return Forms\Components\TextInput::make('code')
             ->label(__('lunarpanel::currency.form.code.label'))
             ->required()
             ->unique(ignoreRecord: true)
@@ -91,7 +85,7 @@ class CurrencyResource extends BaseResource
 
     protected static function getExchangeRateFormComponent(): Component
     {
-        return TextInput::make('exchange_rate')
+        return Forms\Components\TextInput::make('exchange_rate')
             ->label(__('lunarpanel::currency.form.exchange_rate.label'))
             ->numeric()
             ->required();
@@ -99,7 +93,7 @@ class CurrencyResource extends BaseResource
 
     protected static function getDecimalPlacesFormComponent(): Component
     {
-        return TextInput::make('decimal_places')
+        return Forms\Components\TextInput::make('decimal_places')
             ->label(__('lunarpanel::currency.form.decimal_places.label'))
             ->numeric()
             ->required();
@@ -107,19 +101,19 @@ class CurrencyResource extends BaseResource
 
     protected static function getEnabledFormComponent(): Component
     {
-        return Toggle::make('enabled')
+        return Forms\Components\Toggle::make('enabled')
             ->label(__('lunarpanel::currency.form.enabled.label'));
     }
 
     protected static function getDefaultFormComponent(): Component
     {
-        return Toggle::make('default')
+        return Forms\Components\Toggle::make('default')
             ->label(__('lunarpanel::currency.form.default.label'));
     }
 
     protected static function getSyncPricesFormComponent(): Component
     {
-        return Toggle::make('sync_prices')
+        return Forms\Components\Toggle::make('sync_prices')
             ->label(__('lunarpanel::currency.form.sync_prices.label'))
             ->helperText(__('lunarpanel::currency.form.sync_prices.helper_text'))
             ->hidden(
@@ -128,7 +122,7 @@ class CurrencyResource extends BaseResource
             ->default(true);
     }
 
-    protected static function getDefaultTable(Table $table): Table
+    protected static function getDefaultTable(Tables\Table $table): Tables\Table
     {
         return $table->columns([
             BadgeableColumn::make('name')
@@ -140,16 +134,16 @@ class CurrencyResource extends BaseResource
                         ->visible(fn (Model $record) => $record->default),
                 ])
                 ->label(__('lunarpanel::currency.table.name.label')),
-            TextColumn::make('code')
+            Tables\Columns\TextColumn::make('code')
                 ->label(__('lunarpanel::currency.table.code.label')),
-            TextColumn::make('exchange_rate')
+            Tables\Columns\TextColumn::make('exchange_rate')
                 ->label(__('lunarpanel::currency.table.exchange_rate.label')),
-            TextColumn::make('decimal_places')
+            Tables\Columns\TextColumn::make('decimal_places')
                 ->label(__('lunarpanel::currency.table.decimal_places.label')),
-            IconColumn::make('enabled')
+            Tables\Columns\IconColumn::make('enabled')
                 ->boolean()
                 ->label(__('lunarpanel::currency.table.enabled.label')),
-            IconColumn::make('sync_prices')
+            Tables\Columns\IconColumn::make('sync_prices')
                 ->boolean()
                 ->label(__('lunarpanel::currency.table.sync_prices.label')),
         ]);
@@ -158,9 +152,9 @@ class CurrencyResource extends BaseResource
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListCurrencies::route('/'),
-            'create' => CreateCurrency::route('/create'),
-            'edit' => EditCurrency::route('/{record}/edit'),
+            'index' => Pages\ListCurrencies::route('/'),
+            'create' => Pages\CreateCurrency::route('/create'),
+            'edit' => Pages\EditCurrency::route('/{record}/edit'),
         ];
     }
 }

@@ -2,33 +2,31 @@
 
 namespace Lunar\Admin\Filament\Resources\OrderResource\Concerns;
 
-use Filament\Infolists\Components\RepeatableEntry;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Section;
+use Filament\Infolists;
 use Lunar\Admin\Support\Infolists\Components\Transaction as InfolistsTransaction;
 
 trait DisplaysTransactions
 {
-    public static function getDefaultTransactionsRepeatableEntry(): RepeatableEntry
+    public static function getDefaultTransactionsRepeatableEntry(): Infolists\Components\RepeatableEntry
     {
-        return RepeatableEntry::make('transactions')
+        return Infolists\Components\RepeatableEntry::make('transactions')
             ->hiddenLabel()
             ->placeholder(__('lunarpanel::order.infolist.transactions.placeholder'))
             ->getStateUsing(fn ($record) => $record->transactions)
             ->contained(false)
             ->schema([
-                InfolistsTransaction::make('transaction_detail'),
+                InfolistsTransaction::make('transactions'),
             ]);
     }
 
-    public static function getTransactionsRepeatableEntry(): RepeatableEntry
+    public static function getTransactionsRepeatableEntry(): Infolists\Components\RepeatableEntry
     {
         return self::callStaticLunarHook('extendTransactionsRepeatableEntry', static::getDefaultTransactionsRepeatableEntry());
     }
 
-    public static function getDefaultTransactionsInfolist(): Component
+    public static function getDefaultTransactionsInfolist(): Infolists\Components\Component
     {
-        return Section::make('transactions')
+        return Infolists\Components\Section::make('transactions')
             ->heading(__('lunarpanel::order.infolist.transactions.label'))
             ->compact()
             ->collapsed(fn ($state) => filled($state))
@@ -38,7 +36,7 @@ trait DisplaysTransactions
             ]);
     }
 
-    public static function getTransactionsInfolist(): Component
+    public static function getTransactionsInfolist(): Infolists\Components\Component
     {
         return self::callStaticLunarHook('extendTransactionsInfolist', static::getDefaultTransactionsInfolist());
     }

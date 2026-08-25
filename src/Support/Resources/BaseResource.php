@@ -9,26 +9,20 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Lunar\Admin\Support\Concerns\CallsHooks;
-use Lunar\Admin\Support\Resources\Concerns\ExtendsForms;
-use Lunar\Admin\Support\Resources\Concerns\ExtendsPages;
-use Lunar\Admin\Support\Resources\Concerns\ExtendsRelationManagers;
-use Lunar\Admin\Support\Resources\Concerns\ExtendsSubnavigation;
-use Lunar\Admin\Support\Resources\Concerns\ExtendsTables;
 use Lunar\Base\Traits\Searchable;
 use Lunar\FieldTypes\TranslatedText;
 use Lunar\Models\Attribute;
-use ReflectionClass;
 
 use function Filament\Support\generate_search_term_expression;
 
 class BaseResource extends Resource
 {
     use CallsHooks;
-    use ExtendsForms;
-    use ExtendsPages;
-    use ExtendsRelationManagers;
-    use ExtendsSubnavigation;
-    use ExtendsTables;
+    use Concerns\ExtendsForms;
+    use Concerns\ExtendsPages;
+    use Concerns\ExtendsRelationManagers;
+    use Concerns\ExtendsSubnavigation;
+    use Concerns\ExtendsTables;
 
     protected static ?string $permission = null;
 
@@ -59,7 +53,7 @@ class BaseResource extends Resource
 
     public static function getModel(): string
     {
-        $class = new ReflectionClass(static::$model);
+        $class = new \ReflectionClass(static::$model);
 
         if ($class->isInterface()) {
             return app()->get(static::$model)::class;
@@ -84,9 +78,18 @@ class BaseResource extends Resource
                 fn ($result) => str_replace(static::getModel().'::', '', $result)
             );
 
-            $query
-                ->whereIn('id', $ids)
-                ->orderBySequence($ids);
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+            $query->whereIn(
+                'id',
+                $ids
+            );
+
+            $query->when(
+                ! $ids->isEmpty(),
+                fn ($query) => $query->orderBySequence($ids->toArray())
+            );
+
         } else {
             /** @var Connection $databaseConnection */
             $databaseConnection = $query->getConnection();

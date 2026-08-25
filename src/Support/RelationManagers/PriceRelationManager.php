@@ -3,21 +3,13 @@
 namespace Lunar\Admin\Support\RelationManagers;
 
 use Closure;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Group;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Schema;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Events\ModelPricesUpdated;
-use Lunar\DataTypes\Price as PriceDataType;
 use Lunar\Facades\DB;
 use Lunar\Models\Currency;
 use Lunar\Models\CustomerGroup;
@@ -37,12 +29,12 @@ class PriceRelationManager extends BaseRelationManager
         return __('lunarpanel::relationmanagers.pricing.table.heading');
     }
 
-    public function form(Schema $schema): Schema
+    public function form(Form $form): Form
     {
-        return $schema
-            ->components([
-                Group::make([
-                    Select::make('currency_id')
+        return $form
+            ->schema([
+                Forms\Components\Group::make([
+                    Forms\Components\Select::make('currency_id')
                         ->label(
                             __('lunarpanel::relationmanagers.pricing.form.currency_id.label')
                         )->relationship(name: 'currency', titleAttribute: 'name')
@@ -52,7 +44,7 @@ class PriceRelationManager extends BaseRelationManager
                         ->helperText(
                             __('lunarpanel::relationmanagers.pricing.form.currency_id.helper_text')
                         )->required(),
-                    Select::make('customer_group_id')
+                    Forms\Components\Select::make('customer_group_id')
                         ->label(
                             __('lunarpanel::relationmanagers.pricing.form.customer_group_id.label')
                         )->placeholder(
@@ -60,7 +52,7 @@ class PriceRelationManager extends BaseRelationManager
                         )->helperText(
                             __('lunarpanel::relationmanagers.pricing.form.customer_group_id.helper_text')
                         )->relationship(name: 'customerGroup', titleAttribute: 'name'),
-                    TextInput::make('min_quantity')
+                    Forms\Components\TextInput::make('min_quantity')
                         ->label(
                             __('lunarpanel::relationmanagers.pricing.form.min_quantity.label')
                         )->helperText(
@@ -70,10 +62,10 @@ class PriceRelationManager extends BaseRelationManager
                         ->minValue(2)
                         ->required()
                         ->rules([
-                            fn (Get $get, $record) => function (string $attribute, $value, Closure $fail) use ($get, $schema, $record) {
+                            fn (Forms\Get $get, $record) => function (string $attribute, $value, Closure $fail) use ($get, $form, $record) {
                                 $owner = $this->getOwnerRecord();
 
-                                $price = $schema->getModel();
+                                $price = $form->getModel();
 
                                 $exist = $price::query()
                                     ->when(filled($record), fn ($query) => $query->where('id', '!=', $record->id))
@@ -93,11 +85,15 @@ class PriceRelationManager extends BaseRelationManager
                         ]),
                 ])->columns(3),
 
-                Group::make([
-                    TextInput::make('price')->numeric()->helperText(
+                Forms\Components\Group::make([
+                    Forms\Components\TextInput::make('price')->formatStateUsing(
+                        fn ($state) => $state?->decimal(rounding: false)
+                    )->numeric()->helperText(
                         __('lunarpanel::relationmanagers.pricing.form.price.helper_text')
                     )->required(),
-                    TextInput::make('compare_price')->label(
+                    Forms\Components\TextInput::make('compare_price')->formatStateUsing(
+                        fn ($state) => $state?->decimal(rounding: false)
+                    )->label(
                         __('lunarpanel::relationmanagers.pricing.form.compare_price.label')
                     )->helperText(
                         __('lunarpanel::relationmanagers.pricing.form.compare_price.helper_text')
@@ -126,32 +122,32 @@ class PriceRelationManager extends BaseRelationManager
                 __('lunarpanel::relationmanagers.pricing.table.empty_state.label')
             )
             ->columns([
-                TextColumn::make('price')
+                Tables\Columns\TextColumn::make('price')
                     ->label(
                         __('lunarpanel::relationmanagers.pricing.table.price.label')
                     )->formatStateUsing(
                         fn ($state) => $state->formatted,
                     )->sortable(),
-                TextColumn::make('currency.code')->label(
+                Tables\Columns\TextColumn::make('currency.code')->label(
                     __('lunarpanel::relationmanagers.pricing.table.currency.label')
                 )->sortable(),
-                TextColumn::make('min_quantity')->label(
+                Tables\Columns\TextColumn::make('min_quantity')->label(
                     __('lunarpanel::relationmanagers.pricing.table.min_quantity.label')
                 )->sortable(),
-                TextColumn::make('customerGroup.name')->label(
+                Tables\Columns\TextColumn::make('customerGroup.name')->label(
                     __('lunarpanel::relationmanagers.pricing.table.customer_group.label')
                 )->placeholder(
                     __('lunarpanel::relationmanagers.pricing.table.customer_group.placeholder')
                 )->sortable(),
             ])
             ->filters([
-                SelectFilter::make('currency')
+                Tables\Filters\SelectFilter::make('currency')
                     ->relationship(name: 'currency', titleAttribute: 'name')
                     ->preload()
                     ->label(
                         __('lunarpanel::relationmanagers.pricing.table.currency.label')
                     ),
-                SelectFilter::make('min_quantity')->options(
+                Tables\Filters\SelectFilter::make('min_quantity')->options(
                     Price::where('priceable_id', $this->getOwnerRecord()->id)
                         ->where('priceable_type', $this->getOwnerRecord()->getMorphClass())
                         ->get()
@@ -161,7 +157,7 @@ class PriceRelationManager extends BaseRelationManager
                 ),
             ])
             ->headerActions([
-                CreateAction::make()->mutateDataUsing(function (array $data) {
+                Tables\Actions\CreateAction::make()->mutateFormDataUsing(function (array $data) {
                     $currencyModel = Currency::find($data['currency_id']);
 
                     $data['price'] = (int) ($data['price'] * $currencyModel->factor);
@@ -175,36 +171,23 @@ class PriceRelationManager extends BaseRelationManager
                     )
                 ),
             ])
-            ->recordActions([
-                EditAction::make()
-                    ->mutateRecordDataUsing(fn (array $data): array => $this->unwrapPriceData($data))
-                    ->mutateDataUsing(function (array $data): array {
-                        $currencyModel = Currency::find($data['currency_id']);
+            ->actions([
+                Tables\Actions\EditAction::make()->mutateFormDataUsing(function (array $data): array {
+                    $currencyModel = Currency::find($data['currency_id']);
 
-                        $data['price'] = (int) ($data['price'] * $currencyModel->factor);
+                    $data['price'] = (int) ($data['price'] * $currencyModel->factor);
 
-                        return $data;
-                    })->after(
-                        fn () => ModelPricesUpdated::dispatch(
-                            $this->getOwnerRecord()
-                        )
-                    ),
-                DeleteAction::make()->after(
+                    return $data;
+                })->after(
+                    fn () => ModelPricesUpdated::dispatch(
+                        $this->getOwnerRecord()
+                    )
+                ),
+                Tables\Actions\DeleteAction::make()->after(
                     fn () => ModelPricesUpdated::dispatch(
                         $this->getOwnerRecord()
                     )
                 ),
             ]);
-    }
-
-    protected function unwrapPriceData(array $data): array
-    {
-        foreach (['price', 'compare_price'] as $key) {
-            if (($data[$key] ?? null) instanceof PriceDataType) {
-                $data[$key] = $data[$key]->decimal(rounding: false);
-            }
-        }
-
-        return $data;
     }
 }

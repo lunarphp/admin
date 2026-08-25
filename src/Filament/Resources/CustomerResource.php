@@ -2,32 +2,19 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\ViewAction;
-use Filament\Forms\Components\CheckboxList;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Group;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
+use Filament\Forms;
+use Filament\Forms\Components\Component;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Lunar\Admin\Filament\Resources\CustomerResource\Pages\CreateCustomer;
-use Lunar\Admin\Filament\Resources\CustomerResource\Pages\EditCustomer;
-use Lunar\Admin\Filament\Resources\CustomerResource\Pages\ListCustomers;
-use Lunar\Admin\Filament\Resources\CustomerResource\Pages\ViewCustomer;
+use Lunar\Admin\Filament\Resources\CustomerResource\Pages;
 use Lunar\Admin\Filament\Resources\CustomerResource\RelationManagers\AddressRelationManager;
 use Lunar\Admin\Filament\Resources\CustomerResource\RelationManagers\OrdersRelationManager;
 use Lunar\Admin\Filament\Resources\CustomerResource\RelationManagers\UserRelationManager;
 use Lunar\Admin\Filament\Resources\CustomerResource\Widgets\CustomerStatsOverviewWidget;
-use Lunar\Admin\Support\Forms\Components\Attributes;
 use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\Models\Contracts\Customer as CustomerContract;
 
@@ -48,19 +35,19 @@ class CustomerResource extends BaseResource
         ];
     }
 
-    public static function getDefaultForm(Schema $schema): Schema
+    public static function getDefaultForm(Forms\Form $form): Forms\Form
     {
-        return $schema
-            ->components([
-                Group::make([
-                    Section::make()
+        return $form
+            ->schema([
+                Forms\Components\Group::make([
+                    Forms\Components\Section::make()
                         ->id('details')
                         ->schema(
                             static::getMainFormComponents()
                         ),
                     static::getAttributeDataFormComponent(),
                 ])->columnSpan(4),
-                Section::make()
+                Forms\Components\Section::make()
                     ->id('details')
                     ->schema(
                         static::getSideFormComponents()
@@ -91,13 +78,13 @@ class CustomerResource extends BaseResource
     protected static function getMainFormComponents(): array
     {
         return [
-            Group::make()->schema([
+            Forms\Components\Group::make()->schema([
                 static::getTitleFormComponent()->columnSpan(1),
                 static::getFirstNameFormComponent()->columnSpan(2),
                 static::getLastNameFormComponent()->columnSpan(2),
             ])->columns(5),
             static::getCompanyNameFormComponent(),
-            Group::make()->schema([
+            Forms\Components\Group::make()->schema([
                 static::getAccountRefFormComponent(),
                 static::getTaxIdFormComponent(),
             ])->columns(2),
@@ -113,7 +100,7 @@ class CustomerResource extends BaseResource
 
     protected static function getTitleFormComponent(): Component
     {
-        return TextInput::make('title')
+        return Forms\Components\TextInput::make('title')
             ->label(__('lunarpanel::customer.form.title.label'))
             ->required()
             ->maxLength(255)
@@ -122,12 +109,12 @@ class CustomerResource extends BaseResource
 
     protected static function getAttributeDataFormComponent(): Component
     {
-        return Attributes::make();
+        return \Lunar\Admin\Support\Forms\Components\Attributes::make();
     }
 
     protected static function getFirstNameFormComponent(): Component
     {
-        return TextInput::make('first_name')
+        return Forms\Components\TextInput::make('first_name')
             ->label(__('lunarpanel::customer.form.first_name.label'))
             ->required()
             ->maxLength(255)
@@ -136,7 +123,7 @@ class CustomerResource extends BaseResource
 
     protected static function getLastNameFormComponent(): Component
     {
-        return TextInput::make('last_name')
+        return Forms\Components\TextInput::make('last_name')
             ->label(__('lunarpanel::customer.form.last_name.label'))
             ->required()
             ->maxLength(255)
@@ -145,7 +132,7 @@ class CustomerResource extends BaseResource
 
     protected static function getCompanyNameFormComponent(): Component
     {
-        return TextInput::make('company_name')
+        return Forms\Components\TextInput::make('company_name')
             ->label(__('lunarpanel::customer.form.company_name.label'))
             ->nullable()
             ->maxLength(255)
@@ -154,7 +141,7 @@ class CustomerResource extends BaseResource
 
     protected static function getAccountRefFormComponent(): Component
     {
-        return TextInput::make('account_ref')
+        return Forms\Components\TextInput::make('account_ref')
             ->label(__('lunarpanel::customer.form.account_ref.label'))
             ->nullable()
             ->maxLength(255);
@@ -162,7 +149,7 @@ class CustomerResource extends BaseResource
 
     protected static function getTaxIdFormComponent(): Component
     {
-        return TextInput::make('tax_identifier')
+        return Forms\Components\TextInput::make('tax_identifier')
             ->label(__('lunarpanel::customer.form.tax_identifier.label'))
             ->nullable()
             ->maxLength(255);
@@ -170,7 +157,7 @@ class CustomerResource extends BaseResource
 
     protected static function getCustomerGroupsFormComponent(): Component
     {
-        return CheckboxList::make('customerGroups')
+        return Forms\Components\CheckboxList::make('customerGroups')
             ->label(__('lunarpanel::customer.form.customer_groups.label'))
             ->relationship(
                 name: 'customerGroups',
@@ -185,29 +172,29 @@ class CustomerResource extends BaseResource
     {
         return $table
             ->columns([
-                TextColumn::make('first_name')
+                Tables\Columns\TextColumn::make('first_name')
                     ->label(__('lunarpanel::customer.table.first_name.label'))
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('last_name')
+                Tables\Columns\TextColumn::make('last_name')
                     ->label(__('lunarpanel::customer.table.last_name.label'))
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('company_name')
+                Tables\Columns\TextColumn::make('company_name')
                     ->label(__('lunarpanel::customer.table.company_name.label'))
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('tax_identifier')
+                Tables\Columns\TextColumn::make('tax_identifier')
                     ->label(__('lunarpanel::customer.table.tax_identifier.label'))
                     ->sortable(),
-                TextColumn::make('account_ref')
+                Tables\Columns\TextColumn::make('account_ref')
                     ->label(__('lunarpanel::customer.table.account_reference.label'))
                     ->sortable(),
-                TextColumn::make('customerGroups.name')
+                Tables\Columns\TextColumn::make('customerGroups.name')
                     ->label(__('lunarpanel::customergroup.label'))
                     ->badge()
                     ->limitList(1)
-                    ->tooltip(function (TextColumn $column, Model $record): ?string {
+                    ->tooltip(function (Tables\Columns\TextColumn $column, Model $record): ?string {
                         if ($record->customerGroups->count() <= $column->getListLimit()) {
                             return null;
                         }
@@ -218,7 +205,7 @@ class CustomerResource extends BaseResource
                     }),
             ])
             ->filters([
-                SelectFilter::make('customer_group')
+                Tables\Filters\SelectFilter::make('customer_group')
                     ->label(__('lunarpanel::customergroup.label'))
                     ->relationship(
                         name: 'customerGroups',
@@ -231,13 +218,12 @@ class CustomerResource extends BaseResource
                     ->searchable()
                     ->preload(),
             ])
-            ->recordActions([
-                ViewAction::make(),
-                DeleteAction::make(),
+            ->actions([
+                Tables\Actions\ViewAction::make(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
             ->selectCurrentPageOnly();
@@ -255,10 +241,10 @@ class CustomerResource extends BaseResource
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListCustomers::route('/'),
-            'create' => CreateCustomer::route('/create'),
-            'edit' => EditCustomer::route('/{record}/edit'),
-            'view' => ViewCustomer::route('/{record}'),
+            'index' => Pages\ListCustomers::route('/'),
+            'create' => Pages\CreateCustomer::route('/create'),
+            'edit' => Pages\EditCustomer::route('/{record}/edit'),
+            'view' => Pages\ViewCustomer::route('/{record}'),
         ];
     }
 

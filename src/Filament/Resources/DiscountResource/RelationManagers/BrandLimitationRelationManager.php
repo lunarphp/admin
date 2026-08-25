@@ -2,11 +2,8 @@
 
 namespace Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers;
 
-use Filament\Actions\AttachAction;
-use Filament\Actions\DetachAction;
-use Filament\Actions\DetachBulkAction;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Support\RelationManagers\BaseRelationManager;
@@ -36,7 +33,7 @@ class BrandLimitationRelationManager extends BaseRelationManager
             )
             ->paginated(false)
             ->headerActions([
-                AttachAction::make()->form(fn (AttachAction $action): array => [
+                Tables\Actions\AttachAction::make()->form(fn (Tables\Actions\AttachAction $action): array => [
                     $action->getRecordSelect(),
                     Select::make('type')
                         ->options(
@@ -53,20 +50,20 @@ class BrandLimitationRelationManager extends BaseRelationManager
                     )
                     ->recordSelectSearchColumns(['name']),
             ])->columns([
-                TextColumn::make('name')
+                Tables\Columns\TextColumn::make('name')
                     ->label(
                         __('lunarpanel::discount.relationmanagers.brands.table.name.label')
                     ),
-                TextColumn::make('pivot.type')
+                Tables\Columns\TextColumn::make('pivot.type')
                     ->label(
                         __('lunarpanel::discount.relationmanagers.brands.table.type.label')
                     )->formatStateUsing(
                         fn (string $state) => __("lunarpanel::discount.relationmanagers.brands.table.type.{$state}.label")
                     ),
-            ])->recordActions([
-                DetachAction::make(),
-            ])->toolbarActions([
-                DetachBulkAction::make(),
+            ])->actions([
+                Tables\Actions\DetachAction::make(),
+            ])->bulkActions([
+                Tables\Actions\DetachBulkAction::make(),
             ]);
     }
 }

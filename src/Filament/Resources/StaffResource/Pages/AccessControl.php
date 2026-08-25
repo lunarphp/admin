@@ -7,9 +7,10 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
-use Filament\Support\Enums\Size;
+use Filament\Support\Enums\ActionSize;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Lunar\Admin\Filament\Resources\StaffResource;
 use Lunar\Admin\Support\Facades\LunarAccessControl;
@@ -26,7 +27,7 @@ class AccessControl extends Page
 {
     protected static string $resource = StaffResource::class;
 
-    protected string $view = 'lunarpanel::resources.staff-resource.pages.access-control';
+    protected static string $view = 'lunarpanel::resources.staff-resource.pages.access-control';
 
     public array $state = [];
 
@@ -172,7 +173,7 @@ class AccessControl extends Page
             Action::make('add_role')
                 ->label('lunarpanel::staff.action.add-role.label')
                 ->translateLabel()
-                ->schema([
+                ->form([
                     TextInput::make('name')
                         ->label('lunarpanel::staff.form.role.label')
                         ->translateLabel()
@@ -192,11 +193,13 @@ class AccessControl extends Page
         return Action::make('deleteRole')
             ->icon('heroicon-m-trash')
             ->color('danger')
-            ->size(Size::Small)
+            ->size(ActionSize::Small)
             ->tooltip(__('lunarpanel::staff.action.delete-role.label'))
             ->iconButton()
             ->requiresConfirmation()
-            ->modalHeading(function (array $arguments) {
+            ->modalHeading(function (Page $livewire) {
+                $arguments = Arr::last($livewire->mountedActionsArguments);
+
                 if ($handle = $arguments['handle'] ?? null) {
                     $role = LunarAccessControl::getRoles()->first(fn ($r) => $r->handle == $handle);
 

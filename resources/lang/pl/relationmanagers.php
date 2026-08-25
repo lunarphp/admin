@@ -32,7 +32,6 @@ return [
             'description' => 'Określ, które grupy klientów są włączone i zaplanuj dostępność.',
             'name' => [
                 'label' => 'Nazwa',
-                'default_description' => 'Domyślna — kontroluje dostęp gości',
             ],
             'enabled' => [
                 'label' => 'Włączona',

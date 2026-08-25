@@ -2,11 +2,11 @@
 
 namespace Lunar\Admin\Filament\Resources\BrandResource\Pages;
 
-use Filament\Actions\AttachAction;
-use Filament\Actions\DetachAction;
-use Filament\Forms\Components\Select;
+use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Support\Facades\FilamentIcon;
+use Filament\Tables\Actions\AttachAction;
+use Filament\Tables\Actions\DetachAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Filament\Resources\BrandResource;
@@ -39,11 +39,6 @@ class ManageBrandProducts extends BaseManageRelatedRecords
 
     public function table(Table $table): Table
     {
-        return parent::table($table);
-    }
-
-    protected function getDefaultTable(Table $table): Table
-    {
         return $table->columns([
             ProductResource::getNameTableColumn()->searchable()
                 ->url(function (Model $record) {
@@ -52,7 +47,7 @@ class ManageBrandProducts extends BaseManageRelatedRecords
                     ]);
                 }),
             ProductResource::getSkuTableColumn(),
-        ])->recordActions([
+        ])->actions([
             DetachAction::make()
                 ->action(function (Model $record) {
                     $record->update([
@@ -70,19 +65,18 @@ class ManageBrandProducts extends BaseManageRelatedRecords
                     __('lunarpanel::brand.pages.products.actions.attach.label')
                 )
                 ->form([
-                    Select::make('recordId')
+                    Forms\Components\Select::make('recordId')
                         ->label(
                             __('lunarpanel::brand.pages.products.actions.attach.form.record_id.label')
                         )
                         ->required()
                         ->searchable()
-                        ->getSearchResultsUsing(static function (Select $component, string $search): array {
+                        ->getSearchResultsUsing(static function (Forms\Components\Select $component, string $search): array {
                             return Product::search($search)
                                 ->get()
                                 ->mapWithKeys(fn (ProductContract $record): array => [$record->getKey() => $record->translateAttribute('name')])
                                 ->all();
-                        })
-                        ->getOptionLabelUsing(fn ($value): ?string => Product::modelClass()::find($value)?->translateAttribute('name')),
+                        }),
                 ])
                 ->action(function (array $arguments, array $data) {
                     Product::where('id', '=', $data['recordId'])

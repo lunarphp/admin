@@ -3,16 +3,12 @@
 namespace Lunar\Admin\Filament\Resources\ProductVariantResource\Pages;
 
 use Awcodes\Shout\Components\Shout;
-use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Support\Enums\Width;
+use Filament\Forms;
+use Filament\Forms\Get;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
@@ -66,11 +62,6 @@ class ManageVariantMedia extends BaseManageRelatedRecords
 
     public function table(Table $table): Table
     {
-        return parent::table($table);
-    }
-
-    protected function getDefaultTable(Table $table): Table
-    {
         return $table
             ->heading(function () {
                 return __('lunarpanel::relationmanagers.medias.title');
@@ -81,17 +72,17 @@ class ManageVariantMedia extends BaseManageRelatedRecords
             ->recordTitleAttribute('name')
             ->modifyQueryUsing(fn (Builder $query) => $query->orderBy('position'))
             ->columns([
-                ImageColumn::make('image')
+                Tables\Columns\ImageColumn::make('image')
                     ->state(function (Media $record): string {
                         return $record->hasGeneratedConversion('small') ? $record->getUrl('small') : $record->getUrl();
                     })
                     ->label(__('lunarpanel::relationmanagers.medias.table.image.label')),
-                TextColumn::make('file_name')
+                Tables\Columns\TextColumn::make('file_name')
                     ->limit(30)
                     ->label(__('lunarpanel::relationmanagers.medias.table.file.label')),
-                TextColumn::make('custom_properties.name')
+                Tables\Columns\TextColumn::make('custom_properties.name')
                     ->label(__('lunarpanel::relationmanagers.medias.table.name.label')),
-                ToggleColumn::make('primary')
+                Tables\Columns\ToggleColumn::make('primary')
                     ->label(__('lunarpanel::relationmanagers.medias.table.primary.label'))
                     ->beforeStateUpdated(function ($record, $state) {
                         if ($state === true) {
@@ -105,14 +96,14 @@ class ManageVariantMedia extends BaseManageRelatedRecords
                 CreateAction::make('attach')
                     ->label(__('lunarpanel::relationmanagers.medias.actions.attach.label'))
                     ->modalHeading(__('lunarpanel::relationmanagers.medias.actions.attach.label'))
-                    ->modalWidth(Width::Medium)
-                    ->schema([
+                    ->modalWidth(\Filament\Support\Enums\MaxWidth::Medium)
+                    ->form([
                         Shout::make('no_media_available')->content(
                             __('lunarpanel::relationmanagers.medias.all_media_attached')
                         )->visible(
                             fn (Get $get) => $this->getRecord()->product->media()->count() <= $this->getRecord()->images()->count()
                         ),
-                        Select::make('media_id')
+                        Forms\Components\Select::make('media_id')
                             ->label(__('lunarpanel::relationmanagers.medias.table.file.label'))
                             ->options(function () {
                                 return $this->getRecord()
@@ -135,7 +126,7 @@ class ManageVariantMedia extends BaseManageRelatedRecords
                             ->allowHtml()
                             ->required(),
 
-                        Toggle::make('primary')
+                        Forms\Components\Toggle::make('primary')
                             ->label(__('lunarpanel::relationmanagers.medias.table.primary.label'))
                             ->visible(
                                 fn () => $this->getRecord()->product->media()->count() > $this->getRecord()->images()->count()
@@ -169,7 +160,7 @@ class ManageVariantMedia extends BaseManageRelatedRecords
                         return $record;
                     }),
             ])
-            ->recordActions([
+            ->actions([
                 Action::make('detach')
                     ->label(__('lunarpanel::relationmanagers.medias.actions.detach.label'))
                     ->action(function ($record) {

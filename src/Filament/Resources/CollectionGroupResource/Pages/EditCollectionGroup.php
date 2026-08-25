@@ -2,10 +2,10 @@
 
 namespace Lunar\Admin\Filament\Resources\CollectionGroupResource\Pages;
 
-use Filament\Actions\DeleteAction;
+use Filament\Actions;
 use Filament\Notifications\Notification;
 use Lunar\Admin\Filament\Resources\CollectionGroupResource;
-use Lunar\Admin\Filament\Resources\CollectionGroupResource\Widgets\CollectionTreeView;
+use Lunar\Admin\Filament\Resources\CollectionGroupResource\Widgets;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
 
 class EditCollectionGroup extends BaseEditRecord
@@ -15,8 +15,8 @@ class EditCollectionGroup extends BaseEditRecord
     protected function getDefaultHeaderActions(): array
     {
         return [
-            DeleteAction::make()
-                ->before(function ($record, DeleteAction $action) {
+            Actions\DeleteAction::make()
+                ->before(function ($record, Actions\DeleteAction $action) {
                     if ($record->collections->count() > 0) {
                         Notification::make()
                             ->warning()
@@ -31,7 +31,7 @@ class EditCollectionGroup extends BaseEditRecord
     protected function getDefaultFooterWidgets(): array
     {
         return [
-            CollectionTreeView::class,
+            Widgets\CollectionTreeView::class,
         ];
     }
 

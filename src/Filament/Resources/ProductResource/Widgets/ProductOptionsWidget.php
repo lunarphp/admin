@@ -31,7 +31,7 @@ class ProductOptionsWidget extends BaseWidget implements HasActions, HasForms
     use InteractsWithActions;
     use InteractsWithForms;
 
-    protected string $view = 'lunarpanel::resources.product-resource.widgets.product-options';
+    protected static string $view = 'lunarpanel::resources.product-resource.widgets.product-options';
 
     public ?Model $record;
 
@@ -51,7 +51,7 @@ class ProductOptionsWidget extends BaseWidget implements HasActions, HasForms
         $this->configureBaseOptions();
     }
 
-    public function addSharedOptionAction(): Action
+    public function addSharedOptionAction()
     {
         $existing = collect($this->configuredOptions)->pluck('id');
         $options = ProductOption::whereNotIn('id', $existing)
@@ -59,7 +59,7 @@ class ProductOptionsWidget extends BaseWidget implements HasActions, HasForms
             ->get();
 
         return Action::make('addSharedOption')
-            ->schema([
+            ->form([
                 Shout::make('no_shared_components')
                     ->content(
                         __('lunarpanel::productoption.widgets.product-options.actions.add-shared-option.form.no_shared_components.label')
@@ -353,7 +353,7 @@ class ProductOptionsWidget extends BaseWidget implements HasActions, HasForms
         return $valueIds;
     }
 
-    public function saveVariantsAction(): Action
+    public function saveVariantsAction()
     {
         return Action::make('saveVariants')
             ->action(function () {
@@ -399,6 +399,10 @@ class ProductOptionsWidget extends BaseWidget implements HasActions, HasForms
                     if (! empty($variantData['variant_id'])) {
                         $variant = ProductVariant::find($variantData['variant_id']);
                         $basePrice = $variant->basePrices->first();
+                    }
+
+                    if (empty($variantData['variant_id']) && empty($variantData['copied_id'])) {
+                        $variantData['copied_id'] = $this->record->variants()->orderBy('id')->value('id');
                     }
 
                     if (! empty($variantData['copied_id'])) {

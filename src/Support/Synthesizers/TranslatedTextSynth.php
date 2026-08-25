@@ -5,7 +5,6 @@ namespace Lunar\Admin\Support\Synthesizers;
 use Lunar\FieldTypes\Text;
 use Lunar\FieldTypes\TranslatedText;
 use Lunar\Models\Language;
-use Tiptap\Editor;
 
 class TranslatedTextSynth extends AbstractFieldSynth
 {
@@ -18,8 +17,7 @@ class TranslatedTextSynth extends AbstractFieldSynth
         $languages = Language::orderBy('default', 'desc')->get();
 
         return [
-            $languages->mapWithKeys(
-                fn ($language) => [$language->code => $target->getValue()->get($language->code)?->getValue() ?? ''],
+            $languages->mapWithKeys(fn ($language) => [$language->code => new Text((string) $target->getValue()->get($language->code))]
             )->toArray(),
             [],
         ];
@@ -35,21 +33,13 @@ class TranslatedTextSynth extends AbstractFieldSynth
 
     public function get(&$target, $key)
     {
-        return $target->getValue()->get($key)?->getValue() ?? '';
+        return $target->{$key};
     }
 
     public function set(&$target, $key, $value)
     {
-        if (is_array($value)) {
-            $value = (new Editor)->setContent($value)->getHTML();
-        }
-
         $collectionValue = $target->getValue();
         $field = $collectionValue->get($key);
-
-        if (! $field instanceof Text) {
-            $field = new Text;
-        }
 
         $field->setValue($value);
 

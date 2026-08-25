@@ -3,37 +3,22 @@
 namespace Lunar\Admin\Filament\Resources\OrderResource\Pages;
 
 use Awcodes\Shout\Components\Shout;
+use Awcodes\Shout\Components\ShoutEntry;
 use Closure;
-use Filament\Actions\Action;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Infolists\Components\Entry;
-use Filament\Infolists\Components\KeyValueEntry;
-use Filament\Infolists\Components\TextEntry;
+use Filament\Actions;
+use Filament\Forms;
+use Filament\Infolists;
+use Filament\Infolists\Components\Actions\Action;
+use Filament\Infolists\Components\TextEntry\TextEntrySize;
+use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Group;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
+use Filament\Support\Enums\ActionSize;
 use Filament\Support\Enums\FontWeight;
-use Filament\Support\Enums\Size;
-use Filament\Support\Enums\TextSize;
-use Filament\Support\Enums\Width;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Lunar\Admin\Filament\Resources\CustomerResource;
 use Lunar\Admin\Filament\Resources\OrderResource;
-use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysOrderAddresses;
-use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysOrderSummary;
-use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysOrderTimeline;
-use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysOrderTotals;
-use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysShippingInfo;
-use Lunar\Admin\Filament\Resources\OrderResource\Concerns\DisplaysTransactions;
-use Lunar\Admin\Filament\Resources\OrderResource\Pages\Components\OrderItemsTable;
 use Lunar\Admin\Support\Actions\Orders\UpdateStatusAction;
 use Lunar\Admin\Support\Actions\PdfDownload;
 use Lunar\Admin\Support\ActivityLog\Concerns\CanDispatchActivityUpdated;
@@ -42,21 +27,20 @@ use Lunar\Admin\Support\Forms\Components\Tags as TagsComponent;
 use Lunar\Admin\Support\Infolists\Components\Livewire;
 use Lunar\Admin\Support\Infolists\Components\Tags;
 use Lunar\Admin\Support\Pages\BaseViewRecord;
-use Lunar\Models\Order;
 use Lunar\Models\Tag;
 use Lunar\Models\Transaction;
 
 /**
- * @property Order $record
- * @property Collection $transactions
+ * @property \Lunar\Models\Order $record
+ * @property \Illuminate\Support\Collection $transactions
  * @property string $paymentStatus
  * @property bool $requiresCapture
  * @property int $captureTotal
  * @property int $refundTotal
  * @property int $intentTotal
- * @property Collection $intents
- * @property Collection $charges
- * @property Collection $refunds
+ * @property \Illuminate\Support\Collection $intents
+ * @property \Illuminate\Support\Collection $charges
+ * @property \Illuminate\Support\Collection $refunds
  * @property float $availableToRefund
  * @property bool $canBeRefunded
  */
@@ -64,18 +48,18 @@ class ManageOrder extends BaseViewRecord
 {
     use CallsHooks;
     use CanDispatchActivityUpdated;
-    use DisplaysOrderAddresses;
-    use DisplaysOrderSummary;
-    use DisplaysOrderTimeline;
-    use DisplaysOrderTotals;
-    use DisplaysShippingInfo;
-    use DisplaysTransactions;
+    use OrderResource\Concerns\DisplaysOrderAddresses;
+    use OrderResource\Concerns\DisplaysOrderSummary;
+    use OrderResource\Concerns\DisplaysOrderTimeline;
+    use OrderResource\Concerns\DisplaysOrderTotals;
+    use OrderResource\Concerns\DisplaysShippingInfo;
+    use OrderResource\Concerns\DisplaysTransactions;
 
     protected static string $resource = OrderResource::class;
 
-    protected string $view = 'lunarpanel::resources.order-resource.pages.manage-order';
+    protected static string $view = 'lunarpanel::resources.order-resource.pages.manage-order';
 
-    protected Width|string|null $maxContentWidth = 'screen-2xl';
+    protected ?string $maxContentWidth = 'screen-2xl';
 
     public function getBreadcrumb(): string
     {
@@ -92,7 +76,7 @@ class ManageOrder extends BaseViewRecord
     public static function getOrderLinesTable(): Livewire
     {
         return Livewire::make('lines')
-            ->content(OrderItemsTable::class);
+            ->content(OrderResource\Pages\Components\OrderItemsTable::class);
     }
 
     public static function getInfolistSchema(): array
@@ -118,121 +102,114 @@ class ManageOrder extends BaseViewRecord
         ]);
     }
 
-    public static function getDefaultCustomerEntry(): Entry
+    public static function getDefaultCustomerEntry(): Infolists\Components\Entry
     {
-        return TextEntry::make('customer')
+        return Infolists\Components\TextEntry::make('customer')
             ->hidden(fn ($state) => blank($state?->id))
             ->formatStateUsing(fn ($state) => $state->fullName)
             ->weight(FontWeight::SemiBold)
-            ->size(TextSize::Large)
+            ->size(TextEntrySize::Large)
             ->hiddenLabel()
             ->suffixAction(fn ($state) => Action::make('view customer')
                 ->color('gray')
                 ->button()
-                ->size(Size::ExtraSmall)
+                ->size(ActionSize::ExtraSmall)
                 ->url(CustomerResource::getUrl('edit', ['record' => $state->id])));
     }
 
-    public static function getCustomerEntry(): Component
+    public static function getCustomerEntry(): Infolists\Components\Component
     {
         return self::callStaticLunarHook('extendCustomerEntry', static::getDefaultCustomerEntry());
     }
 
-    public static function getDefaultTagsSection(): Section
+    public static function getDefaultTagsSection(): Infolists\Components\Section
     {
-        return Section::make('tags')
+        return Infolists\Components\Section::make('tags')
             ->heading(__('lunarpanel::order.infolist.tags.label'))
             ->headerActions([
                 fn ($record) => static::getEditTagsActions(),
             ])
             ->compact()
             ->schema([
-                Tags::make('tags'),
+                Tags::make(''),
             ]);
     }
 
-    public static function getTagsSection(): Component
+    public static function getTagsSection(): Infolists\Components\Component
     {
         return self::callStaticLunarHook('extendTagsSection', static::getDefaultTagsSection());
     }
 
-    public static function getDefaultAdditionalInfoSection(): Section
+    public static function getDefaultAdditionalInfoSection(): Infolists\Components\Section
     {
-        return Section::make('additional_info')
+        return Infolists\Components\Section::make('additional_info')
             ->heading(__('lunarpanel::order.infolist.additional_info.label'))
             ->compact()
             ->statePath('meta')
-            ->schema(function ($record) {
-                $meta = $record?->meta;
+            ->schema(fn ($state) => blank($state) ? [
+                Infolists\Components\TextEntry::make('no_additional_info')
+                    ->hiddenLabel()
+                    ->getStateUsing(fn () => __('lunarpanel::order.infolist.no_additional_info.label')),
+            ] : collect($state)
+                ->map(function ($value, $key) {
+                    if (is_array($value)) {
+                        return Infolists\Components\KeyValueEntry::make('meta_'.$key)->state($value);
+                    }
 
-                if (blank($meta)) {
-                    return [
-                        TextEntry::make('no_additional_info')
-                            ->hiddenLabel()
-                            ->getStateUsing(fn () => __('lunarpanel::order.infolist.no_additional_info.label')),
-                    ];
-                }
+                    return Infolists\Components\TextEntry::make('meta_'.$key)
+                        ->state($value)
+                        ->label($key)
+                        ->copyable()
+                        ->limit(50)->tooltip(function (Infolists\Components\TextEntry $component): ?string {
+                            $state = $component->getState();
+                            if (strlen($state) <= $component->getCharacterLimit()) {
+                                return null;
+                            }
 
-                return collect($meta)
-                    ->map(function ($value, $key) {
-                        if (is_array($value)) {
-                            return KeyValueEntry::make('meta_'.$key)->getStateUsing(fn () => $value);
-                        }
-
-                        return TextEntry::make('meta_'.$key)
-                            ->getStateUsing(fn () => $value)
-                            ->label($key)
-                            ->copyable()
-                            ->limit(50)->tooltip(function (TextEntry $component): ?string {
-                                $state = $component->getState();
-                                if (strlen($state) <= $component->getCharacterLimit()) {
-                                    return null;
-                                }
-
-                                return $state;
-                            });
-                    })
-                    ->toArray();
-            });
+                            return $state;
+                        });
+                })
+                ->toArray());
     }
 
-    public static function getAdditionalInfoSection(): Component
+    public static function getAdditionalInfoSection(): Infolists\Components\Component
     {
         return self::callStaticLunarHook('extendAdditionalInfoSection', static::getDefaultAdditionalInfoSection());
     }
 
-    public function getDefaultInfolist(Schema $schema): Schema
+    public function getDefaultInfolist(Infolist $infolist): Infolist
     {
-        return $schema
-            ->components([
-                Group::make()
+        return $infolist
+            ->schema([
+                Infolists\Components\Group::make()
                     ->schema([
-                        Group::make()->key('shouts')->schema([
-                            Shout::make('requires_capture')
+                        Infolists\Components\Group::make()->key('shouts')->schema([
+                            ShoutEntry::make('requires_capture')
                                 ->type('danger')
                                 ->content(__('lunarpanel::order.infolist.alert.requires_capture'))
                                 ->visible(fn () => $this->requiresCapture),
-                            Shout::make('partially_refunded')
+                            ShoutEntry::make('partially_refunded')
+                                ->state(fn () => $this->paymentStatus)
                                 ->key('partially_refunded_notice')
-                                ->icon(fn () => match ($this->paymentStatus) {
+                                ->icon(fn ($state) => match ($state) {
                                     'refunded' => FilamentIcon::resolve('lunar::exclamation-circle'),
                                     default => null
                                 })
-                                ->color(fn () => match ($this->paymentStatus) {
+                                ->color(fn (ShoutEntry $component, $state) => match ($state) {
                                     'partial-refund' => 'info',
                                     'refunded' => 'danger',
                                     default => null
-                                })->content(fn () => match ($this->paymentStatus) {
+                                })->content(fn ($state) => match ($state) {
                                     'partial-refund' => __('lunarpanel::order.infolist.alert.partially_refunded'),
-                                    'refunded' => __('lunarpanel::order.infolist.alert.refunded'),
+                                    'refunded' => __('lunarpanel::order.infolist.alert.refunded') ,
                                     default => null
                                 })
-                                ->visible(fn () => in_array($this->paymentStatus, ['partial-refund', 'refunded'])),
+                                ->visible(fn ($state) => in_array($state, ['partial-refund', 'refunded'])),
                         ]),
                         ...static::getInfolistSchema(),
                     ])
                     ->columnSpan(['lg' => 2]),
-                Group::make()
+                Infolists\Components\Group::make()
                     ->schema(static::getInfolistAsideSchema())
                     ->columnSpan(['lg' => 1]),
             ])
@@ -264,7 +241,7 @@ class ManageOrder extends BaseViewRecord
      * Return the order transactions.
      */
     #[Computed]
-    public function transactions(): Collection
+    public function transactions(): \Illuminate\Support\Collection
     {
         return $this->record->transactions()->orderBy('created_at', 'desc')->get();
     }
@@ -342,7 +319,7 @@ class ManageOrder extends BaseViewRecord
             ->fillForm(fn ($record): array => [
                 'tags' => $record->tags,
             ])
-            ->schema(function () {
+            ->form(function () {
                 return [
                     TagsComponent::make('')
                         ->splitKeys(['Tab', ','])
@@ -375,15 +352,15 @@ class ManageOrder extends BaseViewRecord
         ];
     }
 
-    protected function getRefundAction(): Action
+    protected function getRefundAction(): Actions\Action
     {
-        return Action::make('refund')
+        return Actions\Action::make('refund')
             ->label(__('lunarpanel::order.action.refund_payment.label'))
             ->modalSubmitActionLabel(__('lunarpanel::order.action.refund_payment.label'))
             ->icon('heroicon-o-backward')
-            ->schema(fn () => [
+            ->form(fn () => [
 
-                Select::make('transaction')
+                Forms\Components\Select::make('transaction')
                     ->label(__('lunarpanel::order.form.transaction.label'))
                     ->required()
                     ->default(fn () => $this->charges->first()->id)
@@ -393,7 +370,7 @@ class ManageOrder extends BaseViewRecord
                         ]))
                     ->live(),
 
-                TextInput::make('amount')
+                Forms\Components\TextInput::make('amount')
                     ->required()
                     ->label(__('lunarpanel::order.form.amount.label'))
                     ->suffix(fn ($record) => $record->currency->code)
@@ -405,12 +382,12 @@ class ManageOrder extends BaseViewRecord
                     )
                     ->numeric(),
 
-                Textarea::make('notes')
+                Forms\Components\Textarea::make('notes')
                     ->label(__('lunarpanel::order.form.notes.label'))
                     ->autocomplete(false)
                     ->maxLength(255),
 
-                Toggle::make('confirm')
+                Forms\Components\Toggle::make('confirm')
                     ->label(__('lunarpanel::order.form.confirm.label'))
                     ->helperText(__('lunarpanel::order.form.confirm.hint.refund'))
                     ->rules([
@@ -423,7 +400,7 @@ class ManageOrder extends BaseViewRecord
                         },
                     ]),
             ])
-            ->action(function ($data, $record, Action $action) {
+            ->action(function ($data, $record, Actions\Action $action) {
                 $transaction = Transaction::findOrFail($data['transaction']);
 
                 $response = $transaction->refund(bcmul($data['amount'], $record->currency->factor), $data['notes']);
@@ -449,13 +426,13 @@ class ManageOrder extends BaseViewRecord
     }
 
     #[Computed]
-    public function charges(): Collection
+    public function charges(): \Illuminate\Support\Collection
     {
         return $this->record->transactions()->whereType('capture')->whereSuccess(true)->get();
     }
 
     #[Computed]
-    public function refunds(): Collection
+    public function refunds(): \Illuminate\Support\Collection
     {
         return $this->record->transactions()->whereType('refund')->whereSuccess(true)->get();
     }
@@ -472,15 +449,15 @@ class ManageOrder extends BaseViewRecord
         return $this->availableToRefund > 0;
     }
 
-    protected function getCaptureAction(): Action
+    protected function getCaptureAction(): Actions\Action
     {
-        return Action::make('capture')
+        return Actions\Action::make('capture')
             ->label(__('lunarpanel::order.action.capture_payment.label'))
             ->modalSubmitActionLabel(__('lunarpanel::order.action.capture_payment.label'))
             ->icon('heroicon-o-credit-card')
             ->modalWidth('lg')
-            ->schema(fn () => [
-                Select::make('transaction')
+            ->form(fn () => [
+                Forms\Components\Select::make('transaction')
                     ->label(__('lunarpanel::order.form.transaction.label'))
                     ->required()
                     ->default(fn () => $this->intents->first()->id)
@@ -489,7 +466,7 @@ class ManageOrder extends BaseViewRecord
                             $intent->id => "{$intent->amount->formatted} - {$intent->driver}",
                         ]))
                     ->live(),
-                TextInput::make('amount')
+                Forms\Components\TextInput::make('amount')
                     ->required()
                     ->label(__('lunarpanel::order.form.amount.label'))
                     ->suffix(fn ($record) => $record->currency->code)
@@ -499,7 +476,7 @@ class ManageOrder extends BaseViewRecord
                     ->minValue(
                         fn ($record) => 1 / $record->currency->factor
                     )
-                    ->helperText(function (TextInput $component, $get, $state) {
+                    ->helperText(function (Forms\Components\TextInput $component, $get, $state) {
                         $transaction = Transaction::findOrFail($get('transaction'));
 
                         $message = $transaction->amount->decimal > $state ? __('lunarpanel::order.form.amount.hint.less_than_total') : null;
@@ -515,7 +492,7 @@ class ManageOrder extends BaseViewRecord
                             ->content($message);
                     })
                     ->numeric(),
-                Toggle::make('confirm')
+                Forms\Components\Toggle::make('confirm')
                     ->label(__('lunarpanel::order.form.confirm.label'))
                     ->helperText(__('lunarpanel::order.form.confirm.hint.capture'))
                     ->rules([
@@ -528,7 +505,7 @@ class ManageOrder extends BaseViewRecord
                         },
                     ]),
             ])
-            ->action(function ($data, $record, Action $action) {
+            ->action(function ($data, $record, Actions\Action $action) {
                 $transaction = Transaction::findOrFail($data['transaction']);
 
                 $response = $transaction->capture(bcmul($data['amount'], $record->currency->factor));
@@ -553,7 +530,7 @@ class ManageOrder extends BaseViewRecord
     }
 
     #[Computed]
-    public function intents(): Collection
+    public function intents(): \Illuminate\Support\Collection
     {
         return $this->record->transactions()->whereType('intent')->whereSuccess(true)->get();
     }

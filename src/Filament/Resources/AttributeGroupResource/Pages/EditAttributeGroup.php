@@ -2,7 +2,7 @@
 
 namespace Lunar\Admin\Filament\Resources\AttributeGroupResource\Pages;
 
-use Filament\Actions\DeleteAction;
+use Filament\Actions;
 use Filament\Notifications\Notification;
 use Lunar\Admin\Filament\Resources\AttributeGroupResource;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
@@ -14,8 +14,8 @@ class EditAttributeGroup extends BaseEditRecord
     protected function getDefaultHeaderActions(): array
     {
         return [
-            DeleteAction::make()
-                ->before(function ($record, DeleteAction $action) {
+            Actions\DeleteAction::make()
+                ->before(function ($record, Actions\DeleteAction $action) {
                     if ($record->attributes->count() > 0) {
                         Notification::make()
                             ->warning()

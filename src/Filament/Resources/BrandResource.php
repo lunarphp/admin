@@ -2,27 +2,17 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
-use Filament\Pages\Enums\SubNavigationPosition;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
+use Filament\Forms;
+use Filament\Forms\Components\Component;
+use Filament\Forms\Form;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Support\Facades\FilamentIcon;
+use Filament\Tables;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
-use Lunar\Admin\Filament\Resources\BrandResource\Pages\CreateBrand;
-use Lunar\Admin\Filament\Resources\BrandResource\Pages\EditBrand;
-use Lunar\Admin\Filament\Resources\BrandResource\Pages\ListBrands;
-use Lunar\Admin\Filament\Resources\BrandResource\Pages\ManageBrandCollections;
-use Lunar\Admin\Filament\Resources\BrandResource\Pages\ManageBrandMedia;
-use Lunar\Admin\Filament\Resources\BrandResource\Pages\ManageBrandProducts;
-use Lunar\Admin\Filament\Resources\BrandResource\Pages\ManageBrandUrls;
+use Lunar\Admin\Filament\Resources\BrandResource\Pages;
 use Lunar\Admin\Support\Forms\Components\Attributes;
 use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\Models\Contracts\Brand as BrandContract;
@@ -37,7 +27,7 @@ class BrandResource extends BaseResource
 
     protected static int $globalSearchResultsLimit = 5;
 
-    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::End;
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::End;
 
     public static function getLabel(): string
     {
@@ -62,19 +52,19 @@ class BrandResource extends BaseResource
     public static function getDefaultSubNavigation(): array
     {
         return [
-            EditBrand::class,
-            ManageBrandMedia::class,
-            ManageBrandUrls::class,
-            ManageBrandProducts::class,
-            ManageBrandCollections::class,
+            Pages\EditBrand::class,
+            Pages\ManageBrandMedia::class,
+            Pages\ManageBrandUrls::class,
+            Pages\ManageBrandProducts::class,
+            Pages\ManageBrandCollections::class,
         ];
     }
 
-    public static function getDefaultForm(Schema $schema): Schema
+    public static function getDefaultForm(Form $form): Form
     {
-        return $schema
-            ->components([
-                Section::make()
+        return $form
+            ->schema([
+                Forms\Components\Section::make()
                     ->schema(
                         static::getMainFormComponents(),
                     ),
@@ -92,7 +82,7 @@ class BrandResource extends BaseResource
 
     protected static function getNameFormComponent(): Component
     {
-        return TextInput::make('name')
+        return Forms\Components\TextInput::make('name')
             ->label(__('lunarpanel::brand.form.name.label'))
             ->required()
             ->maxLength(255)
@@ -111,12 +101,12 @@ class BrandResource extends BaseResource
             ->filters([
                 //
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->actions([
+                Tables\Actions\EditAction::make(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])->searchable();
     }
@@ -130,10 +120,10 @@ class BrandResource extends BaseResource
                 ->limit(1)
                 ->square()
                 ->label(''),
-            TextColumn::make('name')
+            Tables\Columns\TextColumn::make('name')
                 ->label(__('lunarpanel::brand.table.name.label'))
                 ->searchable(),
-            TextColumn::make('products_count')
+            Tables\Columns\TextColumn::make('products_count')
                 ->counts('products')
                 ->formatStateUsing(
                     fn ($state) => number_format($state, 0)
@@ -152,13 +142,13 @@ class BrandResource extends BaseResource
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListBrands::route('/'),
-            'create' => CreateBrand::route('/create'),
-            'edit' => EditBrand::route('/{record}/edit'),
-            'media' => ManageBrandMedia::route('/{record}/media'),
-            'urls' => ManageBrandUrls::route('/{record}/urls'),
-            'products' => ManageBrandProducts::route('/{record}/products'),
-            'collections' => ManageBrandCollections::route('/{record}/collections'),
+            'index' => Pages\ListBrands::route('/'),
+            'create' => Pages\CreateBrand::route('/create'),
+            'edit' => Pages\EditBrand::route('/{record}/edit'),
+            'media' => Pages\ManageBrandMedia::route('/{record}/media'),
+            'urls' => Pages\ManageBrandUrls::route('/{record}/urls'),
+            'products' => Pages\ManageBrandProducts::route('/{record}/products'),
+            'collections' => Pages\ManageBrandCollections::route('/{record}/collections'),
         ];
     }
 

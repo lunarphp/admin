@@ -2,14 +2,11 @@
 
 namespace Lunar\Admin\Filament\Resources\TaxRateResource\RelationManagers;
 
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Schema;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Validation\Rules\Unique;
 use Lunar\Models\TaxRateAmount;
@@ -25,9 +22,9 @@ class TaxRateAmountRelationManager extends RelationManager
         return false;
     }
 
-    public function form(Schema $schema): Schema
+    public function form(Form $form): Form
     {
-        return $schema->components([
+        return $form->schema([
             Select::make('tax_class_id')
                 ->required()
                 ->unique(
@@ -52,17 +49,17 @@ class TaxRateAmountRelationManager extends RelationManager
             )
             ->paginated(false)
             ->headerActions([
-                CreateAction::make('create'),
+                Tables\Actions\CreateAction::make('create'),
             ])->columns([
-                TextColumn::make('taxClass.name')->label(
+                Tables\Columns\TextColumn::make('taxClass.name')->label(
                     __('lunarpanel::relationmanagers.tax_rate_amounts.table.tax_class.label')
                 ),
-                TextColumn::make('percentage')->label(
+                Tables\Columns\TextColumn::make('percentage')->label(
                     __('lunarpanel::relationmanagers.tax_rate_amounts.table.percentage.label')
                 ),
-            ])->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+            ])->actions([
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ]);
     }
 }

@@ -2,9 +2,9 @@
 
 namespace Lunar\Admin\Filament\Resources\ProductOptionResource\Pages;
 
-use Filament\Actions\DeleteAction;
+use Filament\Actions;
 use Lunar\Admin\Filament\Resources\ProductOptionResource;
-use Lunar\Admin\Filament\Resources\ProductOptionResource\RelationManagers\ValuesRelationManager;
+use Lunar\Admin\Filament\Resources\ProductOptionResource\RelationManagers;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
 
 class EditProductOption extends BaseEditRecord
@@ -14,14 +14,14 @@ class EditProductOption extends BaseEditRecord
     protected function getDefaultHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
 
     public function getRelationManagers(): array
     {
         return $this->record->shared ? [
-            ValuesRelationManager::class,
+            RelationManagers\ValuesRelationManager::class,
         ] : [];
     }
 }

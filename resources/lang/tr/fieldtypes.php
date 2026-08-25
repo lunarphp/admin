@@ -67,12 +67,6 @@ return [
             'max_files' => [
                 'label' => 'Maks. Dosya',
             ],
-            'disk' => [
-                'label' => 'Disk',
-            ],
-            'directory' => [
-                'label' => 'Dizin',
-            ],
         ],
     ],
 ];

@@ -2,18 +2,14 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Awcodes\BadgeableColumn\Components\Badge;
-use Awcodes\BadgeableColumn\Components\BadgeableColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Component;
+use Awcodes\FilamentBadgeableColumn\Components\Badge;
+use Awcodes\FilamentBadgeableColumn\Components\BadgeableColumn;
+use Filament\Forms;
+use Filament\Forms\Components\Component;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
+use Filament\Tables;
 use Illuminate\Database\Eloquent\Model;
-use Lunar\Admin\Filament\Resources\LanguageResource\Pages\CreateLanguage;
-use Lunar\Admin\Filament\Resources\LanguageResource\Pages\EditLanguage;
-use Lunar\Admin\Filament\Resources\LanguageResource\Pages\ListLanguages;
+use Lunar\Admin\Filament\Resources\LanguageResource\Pages;
 use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\Models\Contracts\Language as LanguageContract;
 
@@ -56,7 +52,7 @@ class LanguageResource extends BaseResource
 
     protected static function getNameFormComponent(): Component
     {
-        return TextInput::make('name')
+        return Forms\Components\TextInput::make('name')
             ->label(__('lunarpanel::language.form.name.label'))
             ->required()
             ->maxLength(255)
@@ -65,7 +61,7 @@ class LanguageResource extends BaseResource
 
     protected static function getCodeFormComponent(): Component
     {
-        return TextInput::make('code')
+        return Forms\Components\TextInput::make('code')
             ->label(__('lunarpanel::language.form.code.label'))
             ->required()
             ->minLength(2)
@@ -74,11 +70,11 @@ class LanguageResource extends BaseResource
 
     protected static function getDefaultFormComponent(): Component
     {
-        return Toggle::make('default')
+        return Forms\Components\Toggle::make('default')
             ->label(__('lunarpanel::language.form.default.label'));
     }
 
-    protected static function getDefaultTable(Table $table): Table
+    protected static function getDefaultTable(Tables\Table $table): Tables\Table
     {
         return $table->columns([
             BadgeableColumn::make('name')
@@ -90,7 +86,7 @@ class LanguageResource extends BaseResource
                         ->visible(fn (Model $record) => $record->default),
                 ])
                 ->label(__('lunarpanel::language.table.name.label')),
-            TextColumn::make('code')
+            Tables\Columns\TextColumn::make('code')
                 ->label(__('lunarpanel::language.table.code.label')),
         ]);
     }
@@ -105,9 +101,9 @@ class LanguageResource extends BaseResource
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListLanguages::route('/'),
-            'create' => CreateLanguage::route('/create'),
-            'edit' => EditLanguage::route('/{record}/edit'),
+            'index' => Pages\ListLanguages::route('/'),
+            'create' => Pages\CreateLanguage::route('/create'),
+            'edit' => Pages\EditLanguage::route('/{record}/edit'),
         ];
     }
 }

@@ -2,14 +2,9 @@
 
 namespace Lunar\Admin\Support\RelationManagers;
 
-use Filament\Actions\AttachAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Schema;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
+use Filament;
+use Filament\Forms\Form;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Events\ModelChannelsUpdated;
@@ -30,9 +25,9 @@ class ChannelRelationManager extends BaseRelationManager
         return false;
     }
 
-    public function form(Schema $schema): Schema
+    public function form(Form $form): Form
     {
-        return $schema->components(
+        return $form->schema(
             static::getFormInputs()
         );
     }
@@ -40,19 +35,19 @@ class ChannelRelationManager extends BaseRelationManager
     protected static function getFormInputs(): array
     {
         return [
-            Toggle::make('enabled')->label(
+            Filament\Forms\Components\Toggle::make('enabled')->label(
                 __('lunarpanel::relationmanagers.channels.form.enabled.label')
             )->hint(fn (bool $state): string => match ($state) {
                 false => __('lunarpanel::relationmanagers.channels.form.enabled.helper_text_false'),
                 true => '',
             })->hintColor('danger')->live()->columnSpan(2),
-            Grid::make(2)->schema([
-                DateTimePicker::make('starts_at')->label(
+            Filament\Forms\Components\Grid::make(2)->schema([
+                Filament\Forms\Components\DateTimePicker::make('starts_at')->label(
                     __('lunarpanel::relationmanagers.channels.form.starts_at.label')
                 )->helperText(
                     __('lunarpanel::relationmanagers.channels.form.starts_at.helper_text')
                 ),
-                DateTimePicker::make('ends_at')->label(
+                Filament\Forms\Components\DateTimePicker::make('ends_at')->label(
                     __('lunarpanel::relationmanagers.channels.form.ends_at.label')
                 )->helperText(
                     __('lunarpanel::relationmanagers.channels.form.ends_at.helper_text')
@@ -68,7 +63,7 @@ class ChannelRelationManager extends BaseRelationManager
                 __('lunarpanel::relationmanagers.channels.table.description')
             )->paginated(false)
             ->headerActions([
-                AttachAction::make()->form(fn (AttachAction $action): array => [
+                Tables\Actions\AttachAction::make()->form(fn (Tables\Actions\AttachAction $action): array => [
                     $action->getRecordSelect(),
                     ...static::getFormInputs(),
                 ])->recordTitle(function ($record) {
@@ -83,10 +78,10 @@ class ChannelRelationManager extends BaseRelationManager
                     ),
             ])
             ->columns([
-                TextColumn::make('name')->label(
+                Tables\Columns\TextColumn::make('name')->label(
                     __('lunarpanel::relationmanagers.channels.table.name.label')
                 ),
-                IconColumn::make('enabled')->label(
+                Tables\Columns\IconColumn::make('enabled')->label(
                     __('lunarpanel::relationmanagers.channels.table.enabled.label')
                 )
                     ->color(fn (bool $state): string => match ($state) {
@@ -96,14 +91,14 @@ class ChannelRelationManager extends BaseRelationManager
                         false => 'heroicon-o-x-circle',
                         true => 'heroicon-o-check-circle',
                     }),
-                TextColumn::make('starts_at')->label(
+                Tables\Columns\TextColumn::make('starts_at')->label(
                     __('lunarpanel::relationmanagers.channels.table.starts_at.label')
                 )->dateTime(),
-                TextColumn::make('ends_at')->label(
+                Tables\Columns\TextColumn::make('ends_at')->label(
                     __('lunarpanel::relationmanagers.channels.table.ends_at.label')
                 )->dateTime(),
-            ])->recordActions([
-                EditAction::make()->after(
+            ])->actions([
+                Tables\Actions\EditAction::make()->after(
                     fn () => ModelChannelsUpdated::dispatch(
                         $this->getOwnerRecord()
                     )

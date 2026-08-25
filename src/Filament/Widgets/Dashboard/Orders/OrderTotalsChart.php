@@ -4,7 +4,6 @@ namespace Lunar\Admin\Filament\Widgets\Dashboard\Orders;
 
 use Carbon\CarbonInterface;
 use Carbon\CarbonPeriod;
-use DateTime;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 use Lunar\Facades\DB;
@@ -20,14 +19,14 @@ class OrderTotalsChart extends ApexChartWidget
      */
     protected static ?string $chartId = 'orderTotalsChart';
 
-    protected ?string $pollingInterval = '60s';
+    protected static ?string $pollingInterval = '60s';
 
     protected function getHeading(): ?string
     {
         return __('lunarpanel::widgets.dashboard.orders.order_totals_chart.heading');
     }
 
-    protected function getOrderQuery(DateTime|CarbonInterface|null $from = null, DateTime|CarbonInterface|null $to = null)
+    protected function getOrderQuery(\DateTime|CarbonInterface|null $from = null, \DateTime|CarbonInterface|null $to = null)
     {
         return Order::whereNotNull('placed_at')
             ->with(['currency'])

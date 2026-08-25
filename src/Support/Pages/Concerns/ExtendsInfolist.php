@@ -2,17 +2,17 @@
 
 namespace Lunar\Admin\Support\Pages\Concerns;
 
-use Filament\Schemas\Schema;
+use Filament\Infolists\Infolist;
 
 trait ExtendsInfolist
 {
-    public function infolist(Schema $schema): Schema
+    public function infolist(Infolist $infolist): Infolist
     {
-        return self::callStaticLunarHook('extendsInfolist', $this->getDefaultInfolist($schema));
+        return self::callStaticLunarHook('extendsInfolist', $this->getDefaultInfolist($infolist));
     }
 
-    protected function getDefaultInfolist(Schema $schema): Schema
+    protected function getDefaultInfolist(Infolist $infolist): Infolist
     {
-        return $schema;
+        return $infolist;
     }
 }

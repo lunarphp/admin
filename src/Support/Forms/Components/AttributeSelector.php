@@ -2,7 +2,6 @@
 
 namespace Lunar\Admin\Support\Forms\Components;
 
-use Closure;
 use Filament\Forms\Components\CheckboxList;
 use Lunar\Facades\ModelManifest;
 use Lunar\Models\Attribute;
@@ -30,17 +29,9 @@ class AttributeSelector extends CheckboxList
         $this->loadStateFromRelationships();
     }
 
-    public function relationship(string|Closure|null $name = null, string|Closure|null $titleAttribute = null, ?Closure $modifyQueryUsing = null): static
+    public function relationship(string|\Closure|null $name = null, string|\Closure|null $titleAttribute = null, ?\Closure $modifyQueryUsing = null): static
     {
-        $attributableType = $this->attributableType;
-
-        parent::relationship($name, $titleAttribute ?? 'name', $modifyQueryUsing ?? static function ($query) use ($attributableType) {
-            if ($attributableType) {
-                return Attribute::query()->where('attribute_type', $attributableType);
-            }
-
-            return $query;
-        });
+        parent::relationship($name, $titleAttribute, $modifyQueryUsing);
 
         $type = $this->attributableType;
 
@@ -85,18 +76,5 @@ class AttributeSelector extends CheckboxList
     public function getAttributes($groupId)
     {
         return Attribute::where('attribute_group_id', $groupId)->orderBy('position')->get();
-    }
-
-    /**
-     * Disable the "in" validation since multiple AttributeSelector fields
-     * share the same state path and each validates against a different
-     * attribute type. The custom saveRelationshipsUsing callback handles
-     * filtering by type.
-     *
-     * @return ?array<string>
-     */
-    public function getInValidationRuleValues(): ?array
-    {
-        return null;
     }
 }

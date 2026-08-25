@@ -2,13 +2,10 @@
 
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Lunar\Base\Traits\Searchable;
 use Lunar\DataTypes\Price;
 use Lunar\FieldTypes\TranslatedText;
-use Lunar\Models\Address;
 use Lunar\Models\Attribute;
-use Lunar\Models\ProductVariant;
 
 use function Filament\Support\generate_search_column_expression;
 use function Filament\Support\generate_search_term_expression;
@@ -21,7 +18,7 @@ if (! function_exists('price')) {
 }
 
 if (! function_exists('sync_with_search')) {
-    function sync_with_search(?Model $model = null): void
+    function sync_with_search(?Illuminate\Database\Eloquent\Model $model = null): void
     {
         if (! $model) {
             return;
@@ -35,11 +32,11 @@ if (! function_exists('sync_with_search')) {
             return;
         }
 
-        if ($model instanceof ProductVariant) {
+        if ($model instanceof \Lunar\Models\ProductVariant) {
             $model->product()->first()->searchable();
         }
 
-        if ($model instanceof Address) {
+        if ($model instanceof \Lunar\Models\Address) {
             $model->customer()->first()->searchable();
         }
 

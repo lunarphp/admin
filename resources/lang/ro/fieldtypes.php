@@ -67,12 +67,6 @@ return [
             'max_files' => [
                 'label' => 'Max. fișiere',
             ],
-            'disk' => [
-                'label' => 'Disc',
-            ],
-            'directory' => [
-                'label' => 'Director',
-            ],
         ],
     ],
 ];

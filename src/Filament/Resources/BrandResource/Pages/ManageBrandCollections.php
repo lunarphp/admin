@@ -2,10 +2,10 @@
 
 namespace Lunar\Admin\Filament\Resources\BrandResource\Pages;
 
-use Filament\Actions\AttachAction;
-use Filament\Actions\DetachAction;
-use Filament\Forms\Components\Select;
+use Filament\Forms;
 use Filament\Support\Facades\FilamentIcon;
+use Filament\Tables;
+use Filament\Tables\Actions\DetachAction;
 use Filament\Tables\Table;
 use Lunar\Admin\Filament\Resources\BrandResource;
 use Lunar\Admin\Support\Pages\BaseManageRelatedRecords;
@@ -37,11 +37,6 @@ class ManageBrandCollections extends BaseManageRelatedRecords
 
     public function table(Table $table): Table
     {
-        return parent::table($table);
-    }
-
-    protected function getDefaultTable(Table $table): Table
-    {
         return $table->columns([
             TranslatedTextColumn::make('attribute_data.name')
                 ->description(fn (Collection $record): string => $record->breadcrumb->implode(' > '))
@@ -49,16 +44,16 @@ class ManageBrandCollections extends BaseManageRelatedRecords
                 ->limitedTooltip()
                 ->limit(50)
                 ->label(__('lunarpanel::product.table.name.label')),
-        ])->recordActions([
+        ])->actions([
             DetachAction::make(),
         ])->headerActions([
-            AttachAction::make()
+            Tables\Actions\AttachAction::make()
                 ->recordSelect(
-                    function (Select $select) {
+                    function (Forms\Components\Select $select) {
                         return $select->placeholder(
                             __('lunarpanel::brand.pages.collections.table.header_actions.attach.record_select.placeholder')
                         )
-                            ->getSearchResultsUsing(static function (Select $component, string $search): array {
+                            ->getSearchResultsUsing(static function (Forms\Components\Select $component, string $search): array {
                                 return Collection::search($search)
                                     ->get()
                                     ->mapWithKeys(fn (CollectionContract $record): array => [$record->getKey() => $record->breadcrumb->push($record->translateAttribute('name'))->join(' > ')])

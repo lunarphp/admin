@@ -2,10 +2,9 @@
 
 namespace Lunar\Admin\Filament\Resources\CustomerResource\RelationManagers;
 
-use Filament\Actions\EditAction;
+use Filament\Forms\Components\Group;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Group;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
@@ -29,16 +28,16 @@ class UserRelationManager extends BaseRelationManager
     public function getDefaultTable(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')
+            Tables\Columns\TextColumn::make('name')
                 ->label(__('lunarpanel::user.table.name.label')),
-            TextColumn::make('email')
+            Tables\Columns\TextColumn::make('email')
                 ->label(__('lunarpanel::user.table.email.label')),
-        ])->recordActions([
-            EditAction::make('edit')
+        ])->actions([
+            Tables\Actions\EditAction::make('edit')
                 ->after(
                     fn (Model $record) => CustomerUserEdited::dispatch($record)
                 )
-                ->schema([
+                ->form([
                     Group::make([
                         TextInput::make('email')
                             ->label(

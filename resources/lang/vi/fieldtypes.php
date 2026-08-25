@@ -67,12 +67,6 @@ return [
             'max_files' => [
                 'label' => 'Số tệp tối đa',
             ],
-            'disk' => [
-                'label' => 'Ổ đĩa',
-            ],
-            'directory' => [
-                'label' => 'Thư mục',
-            ],
         ],
     ],
 ];

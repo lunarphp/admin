@@ -12,6 +12,8 @@ class Transaction extends Entry
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->statePath(null);
     }
 
     public function renderPaymentIcons()

@@ -2,7 +2,7 @@
 
 namespace Lunar\Admin\Filament\Resources\TaxRateResource\Pages;
 
-use Filament\Actions\CreateAction;
+use Filament\Actions;
 use Lunar\Admin\Filament\Resources\TaxRateResource;
 use Lunar\Admin\Support\Pages\BaseListRecords;
 
@@ -13,7 +13,7 @@ class ListTaxRates extends BaseListRecords
     protected function getDefaultHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            Actions\CreateAction::make(),
         ];
     }
 }

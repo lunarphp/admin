@@ -3,21 +3,15 @@
 namespace Lunar\Admin\Filament\Resources;
 
 use Carbon\Carbon;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\DatePicker;
+use Filament\Forms;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
+use Filament\Tables;
 use Filament\Tables\Filters\Indicator;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Filament\Resources\OrderResource\Pages;
-use Lunar\Admin\Filament\Resources\OrderResource\Pages\EditOrder;
-use Lunar\Admin\Filament\Resources\OrderResource\Pages\ListOrders;
 use Lunar\Admin\Filament\Resources\OrderResource\Pages\ManageOrder;
 use Lunar\Admin\Support\Actions\Orders\UpdateStatusBulkAction;
 use Lunar\Admin\Support\CustomerStatus;
@@ -70,13 +64,13 @@ class OrderResource extends BaseResource
                 fn (Builder $query): Builder => $query->with(['currency'])
             )
             ->persistFiltersInSession()
-            ->recordActions([
-                EditAction::make()
+            ->actions([
+                Tables\Actions\EditAction::make()
                     ->url(fn ($record) => ManageOrder::getUrl(['record' => $record])),
             ])
             ->recordUrl(fn ($record) => ManageOrder::getUrl(['record' => $record]))
-            ->toolbarActions([
-                BulkActionGroup::make([
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
                     UpdateStatusBulkAction::make('update_status')
                         ->deselectRecordsAfterCompletion(),
                 ]),
@@ -90,55 +84,55 @@ class OrderResource extends BaseResource
     public static function getTableColumns(): array
     {
         return [
-            TextColumn::make('status')
+            Tables\Columns\TextColumn::make('status')
                 ->label(__('lunarpanel::order.table.status.label'))
                 ->toggleable()
                 ->formatStateUsing(fn (string $state) => OrderStatus::getLabel($state))
                 ->color(fn (string $state) => OrderStatus::getColor($state))
                 ->badge(),
-            TextColumn::make('reference')
+            Tables\Columns\TextColumn::make('reference')
                 ->label(__('lunarpanel::order.table.reference.label'))
                 ->toggleable()
                 ->searchable(),
-            TextColumn::make('customer_reference')
+            Tables\Columns\TextColumn::make('customer_reference')
                 ->label(__('lunarpanel::order.table.customer_reference.label'))
                 ->toggleable()
                 ->searchable(),
-            TextColumn::make('billingAddress.fullName')
+            Tables\Columns\TextColumn::make('billingAddress.fullName')
                 ->label(__('lunarpanel::order.table.customer.label'))
                 ->toggleable()
                 ->searchable(['first_name', 'last_name']),
-            TextColumn::make('new_customer')
+            Tables\Columns\TextColumn::make('new_customer')
                 ->label(__('lunarpanel::order.table.new_customer.label'))
                 ->toggleable()
                 ->formatStateUsing(fn (bool $state) => CustomerStatus::getLabel($state))
                 ->color(fn (bool $state) => CustomerStatus::getColor($state))
                 ->icon(fn (bool $state) => CustomerStatus::getIcon($state))
                 ->badge(),
-            TextColumn::make('tags.value')
+            Tables\Columns\TextColumn::make('tags.value')
                 ->label(__('lunarpanel::order.table.tags.label'))
                 ->badge()
                 ->toggleable()
                 ->separator(','),
-            TextColumn::make('billingAddress.postcode')
+            Tables\Columns\TextColumn::make('billingAddress.postcode')
                 ->label(__('lunarpanel::order.table.postcode.label'))
                 ->toggleable()
                 ->searchable(),
-            TextColumn::make('billingAddress.contact_email')
+            Tables\Columns\TextColumn::make('billingAddress.contact_email')
                 ->label(__('lunarpanel::order.table.email.label'))
                 ->toggleable()
                 ->copyable()
                 ->copyMessage(__('lunarpanel::order.table.email.copy_message'))
                 ->copyMessageDuration(1500)
                 ->searchable(),
-            TextColumn::make('billingAddress.contact_phone')
+            Tables\Columns\TextColumn::make('billingAddress.contact_phone')
                 ->label(__('lunarpanel::order.table.phone.label'))
                 ->toggleable(),
-            TextColumn::make('total')
+            Tables\Columns\TextColumn::make('total')
                 ->label(__('lunarpanel::order.table.total.label'))
                 ->toggleable()
                 ->formatStateUsing(fn ($state): string => $state->formatted),
-            TextColumn::make('placed_at')
+            Tables\Columns\TextColumn::make('placed_at')
                 ->label(__('lunarpanel::order.table.date.label'))
                 ->toggleable()
                 ->dateTime(),
@@ -148,18 +142,18 @@ class OrderResource extends BaseResource
     public static function getTableFilters(): array
     {
         return [
-            SelectFilter::make('status')
+            Tables\Filters\SelectFilter::make('status')
                 ->label(__('lunarpanel::order.table.status.label'))
                 ->options(collect(config('lunar.orders.statuses', []))
                     ->mapWithKeys(fn ($data, $status) => [$status => $data['label']]))
                 ->multiple(),
-            Filter::make('placed_at')
+            Tables\Filters\Filter::make('placed_at')
 
-                ->schema([
-                    DatePicker::make('placed_after')
+                ->form([
+                    Forms\Components\DatePicker::make('placed_after')
                         ->label(__('lunarpanel::order.table.placed_after.label'))
                         ->default(Carbon::now()->subMonths(6)),
-                    DatePicker::make('placed_before')
+                    Forms\Components\DatePicker::make('placed_before')
                         ->label(__('lunarpanel::order.table.placed_before.label')),
                 ])
                 ->query(function (Builder $query, array $data): Builder {
@@ -188,7 +182,7 @@ class OrderResource extends BaseResource
 
                     return $indicators;
                 }),
-            SelectFilter::make('tags')
+            Tables\Filters\SelectFilter::make('tags')
                 ->label(__('lunarpanel::order.table.tags.label'))
                 ->multiple()
                 ->relationship('tags', 'value'),
@@ -205,10 +199,10 @@ class OrderResource extends BaseResource
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListOrders::route('/'),
+            'index' => Pages\ListOrders::route('/'),
             // 'create' => Pages\CreateOrder::route('/create'),
-            'order' => ManageOrder::route('/{record}'),
-            'edit' => EditOrder::route('/{record}/edit'),
+            'order' => Pages\ManageOrder::route('/{record}'),
+            'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
     }
 

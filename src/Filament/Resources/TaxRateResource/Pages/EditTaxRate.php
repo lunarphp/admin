@@ -2,9 +2,8 @@
 
 namespace Lunar\Admin\Filament\Resources\TaxRateResource\Pages;
 
-use Filament\Actions\DeleteAction;
+use Filament\Actions;
 use Lunar\Admin\Filament\Resources\TaxRateResource;
-use Lunar\Admin\Filament\Resources\TaxRateResource\RelationManagers\TaxRateAmountRelationManager;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
 
 class EditTaxRate extends BaseEditRecord
@@ -14,14 +13,14 @@ class EditTaxRate extends BaseEditRecord
     protected function getDefaultHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
 
     public function getRelationManagers(): array
     {
         return [
-            TaxRateAmountRelationManager::make(),
+            TaxRateResource\RelationManagers\TaxRateAmountRelationManager::make(),
         ];
     }
 

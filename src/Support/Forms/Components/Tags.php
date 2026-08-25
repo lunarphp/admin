@@ -42,7 +42,7 @@ class Tags extends TagsInput
 
     public function syncTags(?Model $record, array $state): void
     {
-        // Tag::value has an uppercasing mutator, but we still upper here so the whereIn lookup below matches existing rows under case-sensitive collations.
+        // value fields is utf8mb4_unicode_ci prevent no case sensitive
         $state = collect($state)->map(function (string $value) {
             return Str::upper($value);
         })->toArray();

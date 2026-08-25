@@ -2,7 +2,7 @@
 
 namespace Lunar\Admin\Filament\Resources\CollectionGroupResource\Pages;
 
-use Filament\Actions\CreateAction;
+use Filament\Actions;
 use Lunar\Admin\Filament\Resources\CollectionGroupResource;
 use Lunar\Admin\Support\Pages\BaseListRecords;
 
@@ -13,7 +13,7 @@ class ListCollectionGroups extends BaseListRecords
     protected function getDefaultHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            Actions\CreateAction::make(),
         ];
     }
 }

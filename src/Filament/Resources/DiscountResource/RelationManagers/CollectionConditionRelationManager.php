@@ -2,23 +2,17 @@
 
 namespace Lunar\Admin\Filament\Resources\DiscountResource\RelationManagers;
 
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Support\RelationManagers\BaseRelationManager;
-use Lunar\Models\Collection;
-use Lunar\Models\Contracts\Collection as CollectionContract;
 
 class CollectionConditionRelationManager extends BaseRelationManager
 {
     protected static bool $isLazy = false;
 
-    protected static string $relationship = 'discountables';
+    protected static string $relationship = 'collections';
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
@@ -32,6 +26,8 @@ class CollectionConditionRelationManager extends BaseRelationManager
 
     public function getDefaultTable(Table $table): Table
     {
+        $prefix = config('lunar.database.table_prefix');
+
         return $table
             ->heading(
                 __('lunarpanel::discount.relationmanagers.collection_conditions.title')
@@ -41,46 +37,31 @@ class CollectionConditionRelationManager extends BaseRelationManager
             )
             ->paginated(false)
             ->modifyQueryUsing(
-                fn ($query) => $query->where('type', 'condition')
-                    ->where('discountable_type', Collection::morphName())
-                    ->whereHas('discountable')
+                fn ($query) => $query->whereIn($prefix.'collection_discount.type', ['condition'])
             )
             ->headerActions([
-                CreateAction::make()->schema([
-                    Select::make('discountable_id')
-                        ->label(__('lunarpanel::collection.singular_label'))
-                        ->required()
-                        ->searchable()
-                        ->getSearchResultsUsing(static function (string $search): array {
-                            return get_search_builder(Collection::modelClass(), $search)
-                                ->get()
-                                ->mapWithKeys(fn (CollectionContract $record): array => [$record->getKey() => $record->attr('name')])
-                                ->all();
-                        })
-                        ->getOptionLabelUsing(function ($value): string {
-                            return Collection::modelClass()::find($value)?->attr('name') ?? $value;
-                        }),
-                    Forms\Components\Hidden::make('discountable_type')
-                        ->default(Collection::morphName()),
-                ])->label(
-                    __('lunarpanel::discount.relationmanagers.collection_conditions.actions.attach.label')
-                )->mutateDataUsing(function (array $data) {
-                    $data['type'] = 'condition';
-
-                    return $data;
-                }),
+                Tables\Actions\AttachAction::make()->form(fn (Tables\Actions\AttachAction $action): array => [
+                    $action->getRecordSelect(),
+                    Forms\Components\Hidden::make('type')->default('condition'),
+                ])->recordTitle(function ($record) {
+                    return $record->attr('name');
+                })->recordSelectSearchColumns(['attribute_data->name'])
+                    ->preloadRecordSelect()
+                    ->label(
+                        __('lunarpanel::discount.relationmanagers.collection_conditions.actions.attach.label')
+                    ),
             ])->columns([
-                TextColumn::make('discountable.id')
+                Tables\Columns\TextColumn::make('id')
                     ->label(
                         __('lunarpanel::discount.relationmanagers.collection_conditions.table.name.label')
                     )
                     ->formatStateUsing(
-                        fn (Model $record) => $record->discountable?->attr('name')
+                        fn (Model $record) => $record->attr('name')
                     ),
-            ])->recordActions([
-                DeleteAction::make(),
-            ])->toolbarActions([
-                DeleteBulkAction::make(),
+            ])->actions([
+                Tables\Actions\DeleteAction::make(),
+            ])->bulkActions([
+                Tables\Actions\DeleteBulkAction::make(),
             ]);
     }
 }

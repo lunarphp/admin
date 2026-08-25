@@ -2,20 +2,10 @@
 
 namespace Lunar\Admin\Support\Resources\Pages;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Group;
-use Filament\Schemas\Schema;
+use Filament\Forms;
+use Filament\Forms\Form;
 use Filament\Support\Facades\FilamentIcon;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
@@ -47,15 +37,15 @@ class ManageUrlsRelatedRecords extends BaseManageRelatedRecords
         return __('lunarpanel::relationmanagers.urls.title_plural');
     }
 
-    public function form(Schema $schema): Schema
+    public function form(Form $form): Form
     {
-        return $schema
-            ->components([
-                Toggle::make('default')->label(
+        return $form
+            ->schema([
+                Forms\Components\Toggle::make('default')->label(
                     __('lunarpanel::relationmanagers.urls.form.default.label')
                 )->columnSpan(2),
-                Group::make([
-                    TextInput::make('slug')
+                Forms\Components\Group::make([
+                    Forms\Components\TextInput::make('slug')
                         ->label(
                             __('lunarpanel::relationmanagers.urls.table.slug.label')
                         )
@@ -72,7 +62,7 @@ class ManageUrlsRelatedRecords extends BaseManageRelatedRecords
                         )
                         ->maxLength(255)
                         ->required(),
-                    Select::make('language_id')->label(
+                    Forms\Components\Select::make('language_id')->label(
                         __('lunarpanel::relationmanagers.urls.table.language.label')
                     )->relationship(name: 'language', titleAttribute: 'name')->required()->reactive(),
                 ])->columns(2)->columnSpan(2),
@@ -81,36 +71,31 @@ class ManageUrlsRelatedRecords extends BaseManageRelatedRecords
 
     public function table(Table $table): Table
     {
-        return parent::table($table);
-    }
-
-    protected function getDefaultTable(Table $table): Table
-    {
         return $table
             ->recordTitleAttribute('name')
             ->modifyQueryUsing(fn (Builder $query) => $query->orderBy('language_id')->orderBy('default', 'desc'))
             ->columns([
-                TextColumn::make('slug')->label(
+                Tables\Columns\TextColumn::make('slug')->label(
                     __('lunarpanel::relationmanagers.urls.table.slug.label')
                 ),
-                TextColumn::make('language.name')->label(
+                Tables\Columns\TextColumn::make('language.name')->label(
                     __('lunarpanel::relationmanagers.urls.table.language.label')
                 ),
-                IconColumn::make('default')
+                Tables\Columns\IconColumn::make('default')
                     ->label(
                         __('lunarpanel::relationmanagers.urls.table.default.label')
                     )
                     ->boolean(),
             ])
             ->filters([
-                SelectFilter::make('language_id')
+                Tables\Filters\SelectFilter::make('language_id')
                     ->label(
                         __('lunarpanel::relationmanagers.urls.filters.language_id.label')
                     )
                     ->relationship('language', 'name'),
             ])
             ->headerActions([
-                CreateAction::make()->label(
+                Tables\Actions\CreateAction::make()->label(
                     __('lunarpanel::relationmanagers.urls.actions.create.label')
                 )->after(
                     fn () => ModelUrlsUpdated::dispatch(
@@ -118,21 +103,21 @@ class ManageUrlsRelatedRecords extends BaseManageRelatedRecords
                     )
                 ),
             ])
-            ->recordActions([
-                EditAction::make()->after(
+            ->actions([
+                Tables\Actions\EditAction::make()->after(
                     fn () => ModelUrlsUpdated::dispatch(
                         $this->getOwnerRecord()
                     )
                 ),
-                DeleteAction::make()->after(
+                Tables\Actions\DeleteAction::make()->after(
                     fn () => ModelUrlsUpdated::dispatch(
                         $this->getOwnerRecord()
                     )
                 ),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make()->after(
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make()->after(
                         fn () => ModelUrlsUpdated::dispatch(
                             $this->getOwnerRecord()
                         )

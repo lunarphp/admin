@@ -9,7 +9,17 @@ use Lunar\Models\Order;
 
 class LatestOrdersTable extends TableWidget
 {
+    protected function getTablePollingInterval(): ?string
+    {
+        return '60s';
+    }
+
     protected int|string|array $columnSpan = 'full';
+
+    public static function getHeading(): ?string
+    {
+        return __('lunarpanel::widgets.dashboard.orders.latest_orders.heading');
+    }
 
     public function table(Table $table): Table
     {
@@ -18,7 +28,6 @@ class LatestOrdersTable extends TableWidget
         })->columns(
             OrderResource::getTableColumns()
         )->paginated(false)->searchable(false)
-            ->heading(__('lunarpanel::widgets.dashboard.orders.latest_orders.heading'))
-            ->poll('60s');
+            ->heading($this->getHeading());
     }
 }

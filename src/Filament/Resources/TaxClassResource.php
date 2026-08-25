@@ -2,22 +2,16 @@
 
 namespace Lunar\Admin\Filament\Resources;
 
-use Awcodes\BadgeableColumn\Components\Badge;
-use Awcodes\BadgeableColumn\Components\BadgeableColumn;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Section;
+use Awcodes\FilamentBadgeableColumn\Components\Badge;
+use Awcodes\FilamentBadgeableColumn\Components\BadgeableColumn;
+use Filament\Forms;
+use Filament\Forms\Components\Component;
 use Filament\Support\Facades\FilamentIcon;
+use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Lunar\Admin\Filament\Clusters\Taxes;
-use Lunar\Admin\Filament\Resources\TaxClassResource\Pages\CreateTaxClass;
-use Lunar\Admin\Filament\Resources\TaxClassResource\Pages\EditTaxClass;
-use Lunar\Admin\Filament\Resources\TaxClassResource\Pages\ListTaxClasses;
+use Lunar\Admin\Filament\Resources\TaxClassResource\Pages;
 use Lunar\Admin\Support\Resources\BaseResource;
 use Lunar\Models\Contracts\TaxClass as TaxClassContract;
 
@@ -49,7 +43,7 @@ class TaxClassResource extends BaseResource
     protected static function getMainFormComponents(): array
     {
         return [
-            Section::make()->schema([
+            Forms\Components\Section::make()->schema([
                 static::getNameFormComponent(),
                 static::getDefaultFormComponent(),
             ]),
@@ -58,7 +52,7 @@ class TaxClassResource extends BaseResource
 
     protected static function getNameFormComponent(): Component
     {
-        return TextInput::make('name')
+        return Forms\Components\TextInput::make('name')
             ->label(__('lunarpanel::taxclass.form.name.label'))
             ->required()
             ->maxLength(255)
@@ -67,7 +61,7 @@ class TaxClassResource extends BaseResource
 
     protected static function getDefaultFormComponent(): Component
     {
-        return Toggle::make('default')
+        return Forms\Components\Toggle::make('default')
             ->label(__('lunarpanel::taxzone.form.default.label'));
     }
 
@@ -78,12 +72,12 @@ class TaxClassResource extends BaseResource
             ->filters([
                 //
             ])
-            ->recordActions([
-                EditAction::make(),
+            ->actions([
+                Tables\Actions\EditAction::make(),
             ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -113,9 +107,9 @@ class TaxClassResource extends BaseResource
     public static function getDefaultPages(): array
     {
         return [
-            'index' => ListTaxClasses::route('/'),
-            'create' => CreateTaxClass::route('/create'),
-            'edit' => EditTaxClass::route('/{record}/edit'),
+            'index' => Pages\ListTaxClasses::route('/'),
+            'create' => Pages\CreateTaxClass::route('/create'),
+            'edit' => Pages\EditTaxClass::route('/{record}/edit'),
         ];
     }
 }

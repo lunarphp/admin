@@ -2,8 +2,8 @@
 
 namespace Lunar\Admin\Filament\Resources\OrderResource\Pages;
 
-use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Support\Enums\Width;
+use Filament\Resources\Components\Tab;
+use Filament\Support\Enums\MaxWidth;
 use Illuminate\Database\Eloquent\Builder;
 use Lunar\Admin\Filament\Resources\OrderResource;
 use Lunar\Admin\Support\Pages\BaseListRecords;
@@ -38,8 +38,8 @@ class ListOrders extends BaseListRecords
         ];
     }
 
-    public function getMaxContentWidth(): Width
+    public function getMaxContentWidth(): MaxWidth
     {
-        return Width::Full;
+        return MaxWidth::Full;
     }
 }

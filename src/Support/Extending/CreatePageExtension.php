@@ -2,7 +2,7 @@
 
 namespace Lunar\Admin\Support\Extending;
 
-use Filament\Schemas\Schema;
+use Filament\Forms\Form;
 use Illuminate\Database\Eloquent\Model;
 
 abstract class CreatePageExtension extends BaseExtension
@@ -22,9 +22,9 @@ abstract class CreatePageExtension extends BaseExtension
         return $actions;
     }
 
-    public function extendForm(Schema $schema): Schema
+    public function extendForm(Form $form): Form
     {
-        return $schema;
+        return $form;
     }
 
     public function beforeCreate(array $data): array

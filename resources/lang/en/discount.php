@@ -1,7 +1,5 @@
 <?php
 
-use Lunar\Models\Discount;
-
 return [
     'plural_label' => 'Discounts',
     'label' => 'Discount',
@@ -29,11 +27,21 @@ return [
         ],
         'priority' => [
             'label' => 'Priority',
-            'helper_text' => 'A higher number means higher priority. Discounts with a higher priority are applied first. Must be between 1 and 100.',
+            'helper_text' => 'Discounts with higher priority will be applied first.',
+            'options' => [
+                'low' => [
+                    'label' => 'Low',
+                ],
+                'medium' => [
+                    'label' => 'Medium',
+                ],
+                'high' => [
+                    'label' => 'High',
+                ],
+            ],
         ],
         'stop' => [
             'label' => 'Stop other discounts applying after this one',
-            'helper_text' => 'When this discount applies, any discount with a lower priority will be skipped. Give discounts different priorities to control the order they apply in.',
         ],
         'coupon' => [
             'label' => 'Coupon',
@@ -79,16 +87,16 @@ return [
         ],
         'status' => [
             'label' => 'Status',
-            Discount::ACTIVE => [
+            \Lunar\Models\Discount::ACTIVE => [
                 'label' => 'Active',
             ],
-            Discount::PENDING => [
+            \Lunar\Models\Discount::PENDING => [
                 'label' => 'Pending',
             ],
-            Discount::EXPIRED => [
+            \Lunar\Models\Discount::EXPIRED => [
                 'label' => 'Expired',
             ],
-            Discount::SCHEDULED => [
+            \Lunar\Models\Discount::SCHEDULED => [
                 'label' => 'Scheduled',
             ],
         ],
