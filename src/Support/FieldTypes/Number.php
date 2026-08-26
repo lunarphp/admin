@@ -2,15 +2,29 @@
 
 namespace Lunar\Admin\Support\FieldTypes;
 
-use Filament\Forms\Components\Component;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Grid;
 use Lunar\Admin\Support\Synthesizers\NumberSynth;
 use Lunar\Models\Attribute;
 
 class Number extends BaseFieldType
 {
     protected static string $synthesizer = NumberSynth::class;
+
+    public static function canHaveDefaultValue(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @param  array<string, mixed>  $configuration
+     * @return array<mixed>
+     */
+    public static function getDefaultValueValidationRules(array $configuration): array
+    {
+        return ['numeric'];
+    }
 
     public static function getFilamentComponent(Attribute $attribute): Component
     {
@@ -38,11 +52,11 @@ class Number extends BaseFieldType
     {
         return [
             Grid::make(2)->schema([
-                \Filament\Forms\Components\TextInput::make('min')
+                TextInput::make('min')
                     ->label(
                         __('lunarpanel::fieldtypes.number.form.min.label')
                     )->nullable()->numeric(),
-                \Filament\Forms\Components\TextInput::make('max')->label(
+                TextInput::make('max')->label(
                     __('lunarpanel::fieldtypes.number.form.max.label')
                 )->nullable()->numeric(),
             ]),

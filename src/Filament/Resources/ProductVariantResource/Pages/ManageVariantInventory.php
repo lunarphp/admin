@@ -3,11 +3,12 @@
 namespace Lunar\Admin\Filament\Resources\ProductVariantResource\Pages;
 
 use Filament\Actions\Action;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Form;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Model;
+use Lunar\Admin\Events\ProductVariantInventoryUpdated;
 use Lunar\Admin\Filament\Resources\ProductResource;
 use Lunar\Admin\Filament\Resources\ProductVariantResource;
 use Lunar\Admin\Support\Pages\BaseEditRecord;
@@ -61,9 +62,18 @@ class ManageVariantInventory extends BaseEditRecord
         ];
     }
 
-    public function getDefaultForm(Form $form): Form
+    protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        return $form->schema([
+        $record = parent::handleRecordUpdate($record, $data);
+
+        ProductVariantInventoryUpdated::dispatch($record);
+
+        return $record;
+    }
+
+    public function getDefaultForm(Schema $schema): Schema
+    {
+        return $schema->components([
             Section::make()->schema([
                 ProductVariantResource::getStockFormComponent(),
                 ProductVariantResource::getBackorderFormComponent(),

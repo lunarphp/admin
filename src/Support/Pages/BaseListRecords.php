@@ -3,18 +3,26 @@
 namespace Lunar\Admin\Support\Pages;
 
 use Filament\Resources\Pages\ListRecords;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Lunar\Admin\Support\Concerns\CallsHooks;
+use Lunar\Admin\Support\Pages\Concerns\ExtendsFooterWidgets;
+use Lunar\Admin\Support\Pages\Concerns\ExtendsHeaderActions;
+use Lunar\Admin\Support\Pages\Concerns\ExtendsHeaderWidgets;
+use Lunar\Admin\Support\Pages\Concerns\ExtendsHeadings;
+use Lunar\Admin\Support\Pages\Concerns\ExtendsTablePagination;
+use Lunar\Admin\Support\Pages\Concerns\ExtendsTabs;
 use Lunar\Base\Traits\Searchable;
 
 abstract class BaseListRecords extends ListRecords
 {
-    use Concerns\ExtendsFooterWidgets;
-    use Concerns\ExtendsHeaderActions;
-    use Concerns\ExtendsHeaderWidgets;
-    use Concerns\ExtendsHeadings;
-    use Concerns\ExtendsTablePagination;
-    use Concerns\ExtendsTabs;
-    use \Lunar\Admin\Support\Concerns\CallsHooks;
+    use CallsHooks;
+    use ExtendsFooterWidgets;
+    use ExtendsHeaderActions;
+    use ExtendsHeaderWidgets;
+    use ExtendsHeadings;
+    use ExtendsTablePagination;
+    use ExtendsTabs;
 
     protected function applySearchToTableQuery(Builder $query): Builder
     {
@@ -32,21 +40,22 @@ abstract class BaseListRecords extends ListRecords
             $scoutEnabled &&
             $isScoutSearchable
         ) {
-            $ids = collect(static::getModel()::search($search)->take(100)->keys())->map(
+            $trashedFilter = collect($this->getTable()->getFilters())
+                ->firstWhere(fn ($filter) => $filter instanceof TrashedFilter);
+
+            $scoutQuery = static::getModel()::search($search);
+
+            if (filled($state = $trashedFilter?->getState()['value'] ?? null)) {
+                $state ? $scoutQuery->withTrashed() : $scoutQuery->onlyTrashed();
+            }
+
+            $ids = collect($scoutQuery->take(100)->keys())->map(
                 fn ($result) => str_replace(static::getModel().'::', '', $result)
             );
 
-            $placeholders = implode(',', array_fill(0, count($ids), '?'));
-
-            $query->whereIn(
-                'id',
-                $ids
-            );
-
-            $query->when(
-                ! $ids->isEmpty(),
-                fn ($query) => $query->orderBySequence($ids->toArray())
-            );
+            $query
+                ->whereIn('id', $ids)
+                ->orderBySequence($ids);
         }
 
         return $query;

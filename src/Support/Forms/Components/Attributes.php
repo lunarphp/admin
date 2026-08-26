@@ -3,17 +3,21 @@
 namespace Lunar\Admin\Support\Forms\Components;
 
 use Closure;
-use Filament\Forms;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Component as Livewire;
 use Lunar\Admin\Support\Facades\AttributeData;
+use Lunar\Base\FieldType;
 use Lunar\Models\Attribute;
 use Lunar\Models\AttributeGroup;
 use Lunar\Models\Product;
 use Lunar\Models\ProductType;
 use Lunar\Models\ProductVariant;
 
-class Attributes extends Forms\Components\Group
+class Attributes extends Group
 {
     public ?string $modelClassOverride = null;
 
@@ -38,23 +42,73 @@ class Attributes extends Forms\Components\Group
     public function using(string $modelClass): self
     {
         $this->modelClassOverride = $modelClass;
+        $this->key('attributeData'.class_basename($modelClass));
 
         return $this;
     }
 
-    public function getKey(): ?string
+    public function loadStateFromRelationships(bool $hydrateAll = false): void
     {
-        return 'attributeData'.$this->modelClassOverride;
+        parent::loadStateFromRelationships($hydrateAll);
+
+        $rawState = $this->getRawState();
+
+        if (! ($rawState instanceof Arrayable || is_array($rawState))) {
+            return;
+        }
+
+        $data = $rawState instanceof Arrayable ? $rawState->toArray() : $rawState;
+
+        foreach ($data as $key => $value) {
+            if ($value instanceof FieldType) {
+                $fieldValue = $value->getValue();
+                if (is_scalar($fieldValue) || is_null($fieldValue)) {
+                    $data[$key] = is_string($fieldValue) && blank($fieldValue) ? null : $fieldValue;
+                }
+            }
+        }
+
+        $this->rawState($data);
+    }
+
+    public function hydrateState(?array &$hydratedDefaultState, bool $shouldCallHydrationHooks = true, bool $shouldApplyStateCasts = true, array &$appliedStateCastPaths = []): void
+    {
+        if ($hydratedDefaultState === null) {
+            $this->unwrapFieldTypeState();
+        }
+
+        parent::hydrateState($hydratedDefaultState, $shouldCallHydrationHooks, $shouldApplyStateCasts, $appliedStateCastPaths);
+    }
+
+    public function hydrateStatePartially(array $statePaths, bool $shouldCallHydrationHooks = true): void
+    {
+        $this->unwrapFieldTypeState();
+
+        parent::hydrateStatePartially($statePaths, $shouldCallHydrationHooks);
+    }
+
+    protected function unwrapFieldTypeState(): void
+    {
+        $rawState = $this->getRawState();
+
+        if (is_array($rawState) || $rawState instanceof Arrayable) {
+            $rawState = collect($rawState)->map(
+                fn ($value) => $value instanceof FieldType ? $value->getValue() : $value,
+            )->toArray();
+
+            $this->rawState($rawState);
+        }
     }
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->key('attributeData');
         $this->statePath('attribute_data');
 
-        if (blank($this->childComponents)) {
-            $this->schema(function (\Filament\Forms\Get $get, Livewire $livewire, ?Model $record) {
+        if (blank($this->childComponents['default'] ?? [])) {
+            $this->schema(function (Get $get, Livewire $livewire, ?Model $record) {
                 $modelClass = $this->modelClassOverride ?: $livewire::getResource()::getModel();
 
                 $productTypeId = null;
@@ -110,7 +164,7 @@ class Attributes extends Forms\Components\Group
                     foreach ($group['fields'] as $field) {
                         $sectionFields[] = AttributeData::getFilamentComponent($field);
                     }
-                    $groupComponents[] = Forms\Components\Section::make($group['model']
+                    $groupComponents[] = Section::make($group['model']
                         ->translate('name'))
                         ->schema($sectionFields);
                 }
@@ -125,7 +179,7 @@ class Attributes extends Forms\Components\Group
             }
 
             foreach ($state as $key => $value) {
-                if (! $value instanceof \Lunar\Base\FieldType) {
+                if (! $value instanceof FieldType) {
                     continue;
                 }
 
@@ -142,7 +196,15 @@ class Attributes extends Forms\Components\Group
         });
 
         $this->mutateRelationshipDataBeforeFillUsing(static function (Attributes $component, array $data): array {
-            return $data[$component->getAttributeDataField()] ?? [];
+            $attributeData = $data[$component->getAttributeDataField()] ?? [];
+
+            foreach ($attributeData as $key => $value) {
+                if ($value instanceof FieldType) {
+                    $attributeData[$key] = $value->getValue();
+                }
+            }
+
+            return $attributeData;
         });
     }
 }
